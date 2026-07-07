@@ -108,7 +108,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 .prod-card{transition:transform .4s;display:block}.prod-card:hover{transform:translateY(-4px)}
 .prod-card.hidden{display:none}
 .prod-img{aspect-ratio:3/4;overflow:hidden;margin-bottom:.8rem;background:var(--surface2)}
-.prod-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.prod-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s,opacity .2s}
 .prod-card:hover .prod-img img{transform:scale(1.05)}
 .prod-brand{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.25rem}
 .prod-name{font-family:var(--serif);font-size:1rem;font-weight:400;margin-bottom:.2rem}
@@ -532,16 +532,16 @@ const products = [
   {id:16,brand:'essence',name:'Banana Loose Powder',desc:'Mattifying · Fixing · Baking',price:4,img:'products/essence-banana-powder.jpg',colors:[]},
   {id:17,brand:'pastel',name:'Quick Dry Solution',desc:'Shine · Protects manicure',price:3.5,img:'products/pastel-quick-dry.jpg',colors:[]},
   {id:18,brand:'pastel',name:'Nail Care Gel',desc:'With calcium · Strengthening',price:3.5,img:'products/pastel-nail-care-gel.jpg',colors:[]},
-  {id:19,brand:'pastel',name:'Pastel Nail Polish',desc:'Classic collection · 2.00 JD each',price:2,img:'products/pastel-classic-red.jpg',colors:[{name:'Red No.10',hex:'#B22222'},{name:'Red No.28',hex:'#DC143C'},{name:'Wild Red No.33',hex:'#8B0000'},{name:'Cardinal Red No.37',hex:'#722F37'},{name:'Pink No.08',hex:'#DB7093'},{name:'Rose Gem No.310',hex:'#B4838A'},{name:'Blush Pink No.266',hex:'#D4919A'},{name:'Blue No.11',hex:'#1937C7'},{name:'Grey Blue No.13',hex:'#6B8BA4'},{name:'No.229',hex:'#1E3A8A'},{name:'No.269',hex:'#4A5568'},{name:'Winter Garden No.246',hex:'#8BAFC4'},{name:'Grey No.312',hex:'#9DA5B0'},{name:'Dark Black No.38',hex:'#1A1A1A'},{name:'Dark Purple No.44',hex:'#3E2723'},{name:'Clear White No.01',hex:'#F5F5F5'},{name:'Lemonade No.295',hex:'#E8C820'},{name:'Best Selling No.293',hex:'#C8B8A0'},{name:'Glittery No.249',hex:'#C0C0C0'}]},
-  {id:20,brand:'pastel',name:'Pastel Nude Polish',desc:'Nude collection · 2.00 JD each',price:2,img:'products/nude-beige-hand.jpg',colors:[{name:'Dreamer No.769',hex:'#D4A0A0'},{name:'Kind No.762',hex:'#E8C8D0'},{name:'Beige No.755',hex:'#C4A882'},{name:'Bride Nude No.751',hex:'#C8B8A0'},{name:'Milkshake No.765',hex:'#B8A090'},{name:'Buff No.759',hex:'#A89888'},{name:'Princess No.756',hex:'#E0C8C0'}]},
-  {id:21,brand:'pastel',name:'Pastel Pure Polish',desc:'Pure collection · 2.00 JD each',price:2,img:'products/pure-shimmer-hand.jpg',colors:[{name:'Pure No.607',hex:'#E8D0C0'},{name:'Shimmering Fairy No.602',hex:'#C8B0A8'},{name:'Pure No.621',hex:'#7B4060'},{name:'Pure Nude No.616',hex:'#D8C0B8'}]},
+  {id:19,brand:'pastel',name:'Pastel Nail Polish',desc:'Classic collection · 2.00 JD each',price:2,img:'products/pastel-classic-red.jpg',colors:[{name:'Red No.10',hex:'#B22222',img:'products/pastel-wine-red.jpg'},{name:'Red No.28',hex:'#DC143C',img:'products/pastel-bright-red.jpg'},{name:'Wild Red No.33',hex:'#8B0000',img:'products/pastel-dark-red.jpg'},{name:'Cardinal Red No.37',hex:'#722F37',img:'products/pastel-classic-red.jpg'},{name:'Pink No.08',hex:'#DB7093',img:'products/pastel-light-pink.jpg'},{name:'Rose Gem No.310',hex:'#B4838A',img:'products/pastel-mauve.jpg'},{name:'Blush Pink No.266',hex:'#D4919A',img:'products/pastel-hot-pink.jpg'},{name:'Blue No.11',hex:'#1937C7',img:'products/pastel-cobalt.jpg'},{name:'Grey Blue No.13',hex:'#6B8BA4',img:'products/pastel-steel-blue.jpg'},{name:'No.229',hex:'#1E3A8A',img:'products/pastel-royal-blue.jpg'},{name:'No.269',hex:'#4A5568',img:'products/pastel-navy.jpg'},{name:'Winter Garden No.246',hex:'#8BAFC4',img:'products/pastel-baby-blue.jpg'},{name:'Grey No.312',hex:'#9DA5B0',img:'products/pastel-gray.jpg'},{name:'Dark Black No.38',hex:'#1A1A1A',img:'products/pastel-black.jpg'},{name:'Dark Purple No.44',hex:'#3E2723',img:'products/pastel-chocolate.jpg'},{name:'Clear White No.01',hex:'#F5F5F5'},{name:'Lemonade No.295',hex:'#E8C820',img:'products/pastel-yellow-hand.jpg'},{name:'Best Selling No.293',hex:'#C8B8A0',img:'products/pastel-shimmer-hand.jpg'},{name:'Glittery No.249',hex:'#C0C0C0',img:'products/pastel-silver-hand.jpg'}]},
+  {id:20,brand:'pastel',name:'Pastel Nude Polish',desc:'Nude collection · 2.00 JD each',price:2,img:'products/nude-beige-hand.jpg',colors:[{name:'Dreamer No.769',hex:'#D4A0A0',img:'products/pastel-nude-hand.jpg'},{name:'Kind No.762',hex:'#E8C8D0',img:'products/nude-light-pink-hand.jpg'},{name:'Beige No.755',hex:'#C4A882',img:'products/nude-caramel-bottle.jpg'},{name:'Bride Nude No.751',hex:'#C8B8A0',img:'products/nude-sand-bottle.jpg'},{name:'Milkshake No.765',hex:'#B8A090',img:'products/nude-mauve-bottle.jpg'},{name:'Buff No.759',hex:'#A89888',img:'products/nude-taupe-hand.jpg'},{name:'Princess No.756',hex:'#E0C8C0',img:'products/nude-peach-hand.jpg'}]},
+  {id:21,brand:'pastel',name:'Pastel Pure Polish',desc:'Pure collection · 2.00 JD each',price:2,img:'products/pure-shimmer-hand.jpg',colors:[{name:'Pure No.607',hex:'#E8D0C0',img:'products/pure-beige-bottle.jpg'},{name:'Shimmering Fairy No.602',hex:'#C8B0A8',img:'products/pure-matte-hand.jpg'},{name:'Pure No.621',hex:'#7B4060',img:'products/pure-plum-hand.jpg'},{name:'Pure Nude No.616',hex:'#D8C0B8',img:'products/pure-shimmer-hand.jpg'}]},
 ];
 
 // === RENDER PRODUCTS ===
 function renderProducts(){
   const grid=document.getElementById('prodGrid');
   grid.innerHTML=products.map(p=>{
-    const colorsHtml=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
+    const colorsHtml=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
     return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}">
       <div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
       <div class="prod-brand">${p.brand==='maxfactor'?'Max Factor':p.brand.charAt(0).toUpperCase()+p.brand.slice(1)}</div>
@@ -559,7 +559,14 @@ function selectColor(e,pid){
   e.stopPropagation();
   const card=e.target.closest('.prod-card');
   card.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
-  e.target.closest('.color-swatch').classList.add('selected');
+  const swatch=e.target.closest('.color-swatch');
+  swatch.classList.add('selected');
+  const colorImg=swatch.dataset.img;
+  if(colorImg){
+    const img=card.querySelector('.prod-img img');
+    img.style.opacity='0';
+    setTimeout(()=>{img.src=colorImg;img.style.opacity='1'},200);
+  }
 }
 
 function filterProducts(brand,btn){
