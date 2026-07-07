@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Celestia — Where Style Meets Sparkle</title>
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+Infant:ital,wght@0,300;1,300&family=Cormorant:ital,wght@0,300;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#000;--bg:#060504;--surface:#0e0d0b;--surface2:#161513;
+  --gold:#B8956A;--gold2:#D4B896;--gold3:#8B7355;
+  --white:#F8F6F3;--muted:#9E9A94;--dim:#5A5651;
+  --success:#4a7c59;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',-apple-system,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--white);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2.5rem;transition:all .5s cubic-bezier(.4,0,.2,1)}
+.nav.scrolled{background:rgba(6,5,4,.92);backdrop-filter:blur(30px) saturate(1.2);padding:1rem 2.5rem}
+.nav-logo{display:flex;align-items:center}
+.nav-logo img{height:38px;object-fit:contain;transition:height .3s}
+.nav.scrolled .nav-logo img{height:30px}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);transition:color .3s;font-weight:400}
+.nav-links a:hover{color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:1.2rem}
+.nav-lang{font-size:.65rem;letter-spacing:.1em;color:var(--muted);padding:.4rem .8rem;border:1px solid rgba(184,149,106,.2);transition:all .3s}
+.nav-lang:hover{color:var(--gold);border-color:var(--gold)}
+.nav-cart{position:relative;font-size:1.1rem;padding:.3rem;transition:color .3s}
+.nav-cart:hover{color:var(--gold)}
+.cart-count{position:absolute;top:-.3rem;right:-.5rem;background:var(--gold);color:var(--black);font-size:.55rem;font-weight:600;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;display:none}
+.cart-count.show{display:flex}
+.hamburger{display:none;flex-direction:column;gap:6px}
+.hamburger span{width:22px;height:1px;background:var(--white);transition:.3s}
+
+/* HERO */
+.hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 2.5rem 6rem;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:var(--bg)}
+.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(0deg,var(--bg) 0%,rgba(6,5,4,.4) 40%,rgba(6,5,4,.6) 100%),radial-gradient(ellipse 80% 60% at 70% 30%,rgba(184,149,106,.05) 0%,transparent 70%)}
+.hero-line{position:absolute;top:0;left:50%;width:1px;height:40vh;background:linear-gradient(to bottom,transparent,rgba(184,149,106,.25),transparent);animation:heroLine 3s ease-in-out infinite}
+@keyframes heroLine{0%,100%{opacity:.3;transform:scaleY(.7)}50%{opacity:1;transform:scaleY(1)}}
+.hero-content{position:relative;z-index:2;max-width:900px}
+.hero-eyebrow{font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:2rem;display:flex;align-items:center;gap:1rem}
+.hero-eyebrow::before{content:'';width:32px;height:1px;background:var(--gold);opacity:.5}
+.hero h1{font-family:var(--serif);font-weight:300;font-size:clamp(3.2rem,8vw,7rem);line-height:1.05;letter-spacing:-.01em;margin-bottom:1.5rem}
+.hero h1 .gold{color:var(--gold)}.hero h1 .italic{font-style:italic;font-weight:300}
+.hero-desc{font-size:1rem;font-weight:300;color:var(--muted);max-width:420px;line-height:1.7;margin-bottom:2.5rem}
+.hero-actions{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:.6rem;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:500;padding:.9rem 2rem;transition:all .4s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.btn-gold{background:var(--gold);color:var(--black)}
+.btn-gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(184,149,106,.2)}
+.btn-ghost{color:var(--white);padding:.9rem 0}
+.btn-ghost::after{content:'';position:absolute;bottom:.7rem;left:0;width:100%;height:1px;background:var(--dim);transition:background .3s}
+.btn-ghost:hover{color:var(--gold)}.btn-ghost:hover::after{background:var(--gold)}
+.hero-scroll{position:absolute;right:2.5rem;bottom:6rem;writing-mode:vertical-rl;display:flex;align-items:center;gap:1rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.hero-scroll::after{content:'';width:1px;height:50px;background:linear-gradient(to bottom,var(--gold3),transparent)}
+
+/* MARQUEE */
+.marquee-wrap{border-top:1px solid rgba(184,149,106,.08);border-bottom:1px solid rgba(184,149,106,.08);padding:1.5rem 0;overflow:hidden}
+.marquee{display:flex;gap:4rem;white-space:nowrap;animation:scroll 25s linear infinite}
+.marquee span{font-family:var(--serif);font-size:1.1rem;font-weight:400;letter-spacing:.1em;color:var(--dim);display:flex;align-items:center;gap:4rem}
+.marquee span::after{content:'◆';font-size:.35rem;color:var(--gold3)}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* SECTIONS */
+.sect{padding:7rem 2.5rem}.sect-sm{padding:5rem 2.5rem}
+.sect-label{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem}
+.sect-label::before{content:'';width:20px;height:1px;background:var(--gold3)}
+.sect-title{font-family:var(--serif);font-size:clamp(2rem,4vw,3.2rem);font-weight:300;line-height:1.15;margin-bottom:.8rem}
+.sect-desc{font-size:.9rem;font-weight:300;color:var(--muted);max-width:460px;line-height:1.8}
+.sect-header{max-width:600px;margin-bottom:3.5rem}
+.center{text-align:center;margin-left:auto;margin-right:auto}
+.center .sect-label{justify-content:center}.center .sect-label::before{display:none}
+.center .sect-desc{margin-left:auto;margin-right:auto}
+
+/* COLLECTIONS */
+.coll-scroll{display:flex;gap:1.2rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:1rem;-webkit-overflow-scrolling:touch}
+.coll-scroll::-webkit-scrollbar{height:2px}.coll-scroll::-webkit-scrollbar-track{background:var(--surface)}.coll-scroll::-webkit-scrollbar-thumb{background:var(--gold3)}
+.coll-card{flex:0 0 340px;scroll-snap-align:start;position:relative;overflow:hidden;cursor:pointer;aspect-ratio:3/4.2}
+.coll-img{position:absolute;inset:0;transition:transform .8s cubic-bezier(.4,0,.2,1)}
+.coll-card:hover .coll-img{transform:scale(1.06)}
+.coll-card::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,.15) 45%,rgba(0,0,0,0) 100%)}
+.coll-body{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:2rem}
+.coll-body .coll-tag{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem}
+.coll-body h3{font-family:var(--serif);font-size:1.8rem;font-weight:400;margin-bottom:.3rem}
+.coll-body p{font-size:.8rem;color:var(--muted);margin-bottom:1.2rem}
+.coll-link{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:.5rem;opacity:0;transform:translateY(8px);transition:all .4s}
+.coll-card:hover .coll-link{opacity:1;transform:translateY(0)}
+.coll-bags .coll-img{background:linear-gradient(160deg,#1a1714 0%,#2a2218 40%,#1a1510 100%)}
+.coll-makeup .coll-img{background:linear-gradient(160deg,#1a1318 0%,#2a1a20 40%,#1a1015 100%)}
+.coll-accessories .coll-img{background:linear-gradient(160deg,#14171a 0%,#1a2228 40%,#10151a 100%)}
+
+/* SHOP */
+.shop-filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2.5rem}
+.shop-filter{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;padding:.55rem 1.2rem;border:1px solid rgba(184,149,106,.12);color:var(--muted);transition:all .3s}
+.shop-filter:hover,.shop-filter.active{color:var(--gold);border-color:var(--gold);background:rgba(184,149,106,.06)}
+.prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
+.prod-card{transition:transform .4s;display:block}.prod-card:hover{transform:translateY(-4px)}
+.prod-card.hidden{display:none}
+.prod-img{aspect-ratio:3/4;overflow:hidden;margin-bottom:.8rem;background:var(--surface2)}
+.prod-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.prod-card:hover .prod-img img{transform:scale(1.05)}
+.prod-brand{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.25rem}
+.prod-name{font-family:var(--serif);font-size:1rem;font-weight:400;margin-bottom:.2rem}
+.prod-desc{font-size:.72rem;color:var(--dim);line-height:1.5;margin-bottom:.4rem}
+.prod-price{font-size:.85rem;font-weight:500;color:var(--gold2);margin-bottom:.6rem}
+/* Color swatches */
+.prod-colors{display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
+.color-swatch{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s;position:relative}
+.color-swatch:hover,.color-swatch.selected{border-color:var(--gold);transform:scale(1.15)}
+.color-swatch .swatch-tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--white);font-size:.55rem;padding:.2rem .5rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s}
+.color-swatch:hover .swatch-tip{opacity:1}
+/* Add to cart */
+.add-cart{width:100%;background:var(--surface2);border:1px solid rgba(184,149,106,.1);color:var(--white);padding:.6rem;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.add-cart:hover{background:var(--gold);color:var(--black);border-color:var(--gold)}
+.add-cart.added{background:var(--success);border-color:var(--success);color:var(--white)}
+@media(max-width:900px){.prod-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.prod-grid{grid-template-columns:1fr 1fr;gap:.8rem}}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;max-width:1100px;margin:0 auto}
+.about-text p{font-size:.9rem;line-height:1.9;color:var(--muted);margin-bottom:1.2rem}
+.about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:2.5rem;padding-top:2.5rem;border-top:1px solid rgba(184,149,106,.08)}
+.stat .stat-num{font-family:var(--serif);font-size:2.8rem;font-weight:300;color:var(--gold);line-height:1}
+.stat .stat-label{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:.4rem}
+.about-visual{position:relative;aspect-ratio:4/5}
+.about-img{width:100%;height:100%;background:linear-gradient(135deg,var(--surface),var(--surface2));display:flex;align-items:center;justify-content:center}
+.about-img-inner{text-align:center;padding:3rem}
+.about-img-inner .q-mark{font-family:var(--serif);font-size:6rem;color:var(--gold);opacity:.15;line-height:1}
+.about-img-inner blockquote{font-family:var(--serif);font-style:italic;font-size:1.3rem;color:var(--gold2);line-height:1.6;margin-top:-.5rem}
+.about-accent{position:absolute;top:-1.5rem;left:-1.5rem;width:60%;height:60%;border:1px solid rgba(184,149,106,.1);pointer-events:none}
+
+/* SERVICES */
+.srv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(184,149,106,.05)}
+.srv-item{background:var(--bg);padding:3rem 2rem;text-align:center;transition:background .4s}
+.srv-item:hover{background:var(--surface)}
+.srv-icon{font-size:1.6rem;margin-bottom:1.2rem}
+.srv-item h4{font-family:var(--serif);font-size:1.15rem;font-weight:400;margin-bottom:.5rem}
+.srv-item p{font-size:.78rem;color:var(--dim);line-height:1.6}
+
+/* REVIEWS */
+.rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.rev-card{padding:2.5rem;background:var(--surface);position:relative;border:1px solid rgba(184,149,106,.04);transition:border-color .4s}
+.rev-card:hover{border-color:rgba(184,149,106,.15)}
+.rev-card .rev-quote{position:absolute;top:1.5rem;right:2rem;font-family:var(--serif);font-size:4rem;color:var(--gold);opacity:.1;line-height:1}
+.rev-stars{display:flex;gap:3px;margin-bottom:1.2rem}.rev-stars span{color:var(--gold);font-size:.7rem}
+.rev-text{font-size:.88rem;line-height:1.8;color:var(--muted);font-style:italic;margin-bottom:1.5rem}
+.rev-author{font-size:.8rem;font-weight:500;letter-spacing:.03em}.rev-role{font-size:.68rem;color:var(--dim);margin-top:.15rem}
+.rev-badge{display:inline-flex;align-items:center;gap:1.2rem;margin-top:3rem;padding:1.2rem 2.5rem;border:1px solid rgba(184,149,106,.12)}
+.rev-badge .rb-num{font-family:var(--serif);font-size:2.2rem;font-weight:300;color:var(--gold)}
+.rev-badge .rb-info{font-size:.75rem;color:var(--muted);line-height:1.5}.rev-badge .rb-info strong{color:var(--white);font-weight:500;display:block}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:5rem;max-width:1000px;margin:0 auto}
+.c-detail{margin-bottom:2rem}.c-detail .c-lbl{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
+.c-detail .c-val{font-size:.9rem;color:var(--muted);line-height:1.5}.c-detail .c-val a{color:var(--gold2);transition:color .3s}.c-detail .c-val a:hover{color:var(--gold)}
+.c-wa{display:inline-flex;align-items:center;gap:.6rem;margin-top:1rem;background:var(--gold);color:var(--black);padding:.8rem 2rem;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;transition:all .4s}
+.c-wa:hover{background:var(--gold2);transform:translateY(-2px)}
+.c-form{display:flex;flex-direction:column;gap:1.2rem}.c-form .f-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.c-form label{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem;display:block}
+.c-form input,.c-form textarea{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(184,149,106,.12);color:var(--white);padding:.7rem 0;font-family:var(--sans);font-size:.88rem;outline:none;transition:border-color .3s}
+.c-form input:focus,.c-form textarea:focus{border-color:var(--gold)}
+.c-form input::placeholder,.c-form textarea::placeholder{color:var(--dim)}
+.c-form textarea{min-height:80px;resize:none}
+
+/* FAQ */
+.faq-list{max-width:680px;margin:0 auto}
+.faq-item{border-bottom:1px solid rgba(184,149,106,.06)}
+.faq-q{width:100%;text-align:left;padding:1.4rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;font-size:.95rem;color:var(--white);font-weight:400}
+.faq-q span:first-child{font-family:var(--serif);font-size:1.05rem}
+.faq-toggle{width:28px;height:28px;border:1px solid rgba(184,149,106,.15);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--gold);transition:all .3s;flex-shrink:0}
+.faq-item.open .faq-toggle{transform:rotate(45deg);background:rgba(184,149,106,.1)}
+.faq-a{font-size:.85rem;line-height:1.8;color:var(--muted);padding:0 0 1.5rem;display:none}.faq-item.open .faq-a{display:block}
+
+/* FOOTER */
+.footer{padding:5rem 2.5rem 2rem;border-top:1px solid rgba(184,149,106,.06)}
+.f-top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;margin-bottom:4rem}
+.f-brand .nav-logo{margin-bottom:1rem}.f-brand p{font-size:.82rem;color:var(--dim);max-width:280px;line-height:1.6}
+.f-col h5{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem}
+.f-col a{display:block;font-size:.82rem;color:var(--dim);margin-bottom:.7rem;transition:color .3s}.f-col a:hover{color:var(--gold)}
+.f-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:2rem;border-top:1px solid rgba(255,255,255,.03);font-size:.7rem;color:var(--dim)}
+
+/* CART DRAWER */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;opacity:0;pointer-events:none;transition:opacity .3s}
+.cart-overlay.open{opacity:1;pointer-events:auto}
+.cart-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:90vw;height:100%;background:var(--bg);border-left:1px solid rgba(184,149,106,.08);z-index:500;transition:right .4s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.cart-drawer.open{right:0}
+.cart-header{padding:1.5rem;border-bottom:1px solid rgba(184,149,106,.08);display:flex;justify-content:space-between;align-items:center}
+.cart-header h3{font-family:var(--serif);font-size:1.3rem;font-weight:400}
+.cart-close{font-size:1.2rem;color:var(--dim);transition:color .3s}.cart-close:hover{color:var(--white)}
+.cart-items{flex:1;overflow-y:auto;padding:1rem 1.5rem}
+.cart-empty{text-align:center;padding:3rem 1rem;color:var(--dim);font-size:.9rem}
+.cart-item{display:flex;gap:1rem;padding:1rem 0;border-bottom:1px solid rgba(184,149,106,.05)}
+.cart-item-img{width:60px;height:75px;background:var(--surface2);flex-shrink:0;overflow:hidden}
+.cart-item-img img{width:100%;height:100%;object-fit:cover}
+.cart-item-info{flex:1}
+.cart-item-name{font-family:var(--serif);font-size:.9rem;margin-bottom:.15rem}
+.cart-item-variant{font-size:.65rem;color:var(--dim)}
+.cart-item-price{font-size:.8rem;color:var(--gold);margin-top:.3rem}
+.cart-item-qty{display:flex;align-items:center;gap:.6rem;margin-top:.4rem}
+.qty-btn{width:22px;height:22px;border:1px solid rgba(184,149,106,.15);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);transition:all .2s}
+.qty-btn:hover{border-color:var(--gold);color:var(--gold)}
+.qty-num{font-size:.8rem;min-width:16px;text-align:center}
+.cart-item-remove{font-size:.6rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;transition:color .2s}
+.cart-item-remove:hover{color:#c44}
+.cart-footer{padding:1.5rem;border-top:1px solid rgba(184,149,106,.08)}
+.cart-total{display:flex;justify-content:space-between;margin-bottom:1rem;font-size:.9rem}
+.cart-total .ct-label{color:var(--muted)}.cart-total .ct-price{font-family:var(--serif);font-size:1.2rem;color:var(--gold)}
+.cart-checkout{width:100%;background:var(--gold);color:var(--black);padding:.9rem;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:500;transition:all .3s}
+.cart-checkout:hover{background:var(--gold2)}
+
+/* CHECKOUT MODAL */
+.checkout-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;padding:1.5rem}
+.checkout-overlay.open{display:flex}
+.checkout-box{width:100%;max-width:500px;max-height:90vh;overflow-y:auto;background:var(--surface);border:1px solid rgba(184,149,106,.08);padding:2.5rem}
+.checkout-box h2{font-family:var(--serif);font-size:1.8rem;font-weight:300;margin-bottom:2rem}
+.checkout-box .sect-label{margin-bottom:1.5rem}
+.ch-field{margin-bottom:1.2rem}
+.ch-field label{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;display:block}
+.ch-field input,.ch-field select,.ch-field textarea{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(184,149,106,.12);color:var(--white);padding:.7rem 0;font-family:var(--sans);font-size:.88rem;outline:none;transition:border-color .3s}
+.ch-field select{background:var(--surface)}
+.ch-field select option{background:var(--surface);color:var(--white)}
+.ch-field input:focus,.ch-field select:focus{border-color:var(--gold)}
+.ch-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.ch-summary{margin:2rem 0;padding:1.5rem;background:rgba(184,149,106,.04);border:1px solid rgba(184,149,106,.06)}
+.ch-summary-line{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.5rem;color:var(--muted)}
+.ch-summary-total{display:flex;justify-content:space-between;font-size:1rem;padding-top:.8rem;border-top:1px solid rgba(184,149,106,.08);margin-top:.5rem}
+.ch-summary-total span:last-child{font-family:var(--serif);font-size:1.3rem;color:var(--gold)}
+.payment-options{display:flex;flex-direction:column;gap:.8rem;margin:1.5rem 0}
+.pay-option{display:flex;align-items:center;gap:.8rem;padding:1rem;border:1px solid rgba(184,149,106,.1);cursor:pointer;transition:all .3s}
+.pay-option:hover,.pay-option.selected{border-color:var(--gold);background:rgba(184,149,106,.04)}
+.pay-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--dim);flex-shrink:0;position:relative;transition:border-color .3s}
+.pay-option.selected .pay-radio{border-color:var(--gold)}
+.pay-option.selected .pay-radio::after{content:'';width:8px;height:8px;background:var(--gold);border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.pay-info .pay-title{font-size:.85rem;font-weight:500}.pay-info .pay-sub{font-size:.7rem;color:var(--dim);margin-top:.1rem}
+.ch-place{width:100%;background:var(--gold);color:var(--black);padding:1rem;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;margin-top:1rem;transition:all .3s}
+.ch-place:hover{background:var(--gold2)}
+.ch-back{width:100%;text-align:center;padding:.8rem;font-size:.7rem;color:var(--dim);letter-spacing:.1em;margin-top:.5rem;transition:color .3s}
+.ch-back:hover{color:var(--gold)}
+
+/* LOGIN MODAL */
+.login-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;padding:1.5rem}
+.login-overlay.open{display:flex}
+.login-box{width:100%;max-width:400px;background:var(--surface);border:1px solid rgba(184,149,106,.08);padding:3rem 2.5rem;position:relative}
+.login-close{position:absolute;top:1.2rem;right:1.5rem;font-size:1.2rem;color:var(--dim);transition:color .3s}.login-close:hover{color:var(--white)}
+.login-box h2{font-family:var(--serif);font-size:1.8rem;font-weight:300;margin-bottom:2rem}
+.login-field{margin-bottom:1.2rem}
+.login-field label{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;display:block}
+.login-field input{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(184,149,106,.12);color:var(--white);padding:.7rem 0;font-family:var(--sans);font-size:.9rem;outline:none;transition:border-color .3s}
+.login-field input:focus{border-color:var(--gold)}.login-field input::placeholder{color:var(--dim)}
+.pw-wrap{position:relative}.pw-wrap input{padding-right:2.5rem}
+.pw-toggle{position:absolute;right:0;top:50%;transform:translateY(-50%);color:var(--dim);transition:color .3s;padding:.5rem}.pw-toggle:hover{color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);color:var(--black);padding:.9rem;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:500;margin-top:1.5rem;transition:all .4s}.login-btn:hover{background:var(--gold2)}
+.login-divider{text-align:center;margin:1.5rem 0;font-size:.75rem;color:var(--dim);position:relative}
+.login-divider::before,.login-divider::after{content:'';position:absolute;top:50%;width:35%;height:1px;background:rgba(184,149,106,.08)}.login-divider::before{left:0}.login-divider::after{right:0}
+.login-signup{text-align:center;font-size:.8rem;color:var(--muted)}.login-signup a{color:var(--gold);transition:color .3s}.login-signup a:hover{color:var(--gold2)}
+
+/* SUCCESS */
+.success-msg{position:fixed;top:5rem;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--success);color:var(--white);padding:.8rem 2rem;font-size:.8rem;z-index:700;opacity:0;transition:all .4s;pointer-events:none}
+.success-msg.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MOBILE */
+@media(max-width:900px){.srv-grid{grid-template-columns:1fr 1fr}.rev-grid{grid-template-columns:1fr}}
+@media(max-width:768px){
+  .nav{padding:1rem 1.5rem}.nav.scrolled{padding:.8rem 1.5rem}
+  .nav-links{display:none;position:fixed;inset:0;background:rgba(6,5,4,.97);backdrop-filter:blur(20px);flex-direction:column;justify-content:center;align-items:center;gap:2.5rem;z-index:200}
+  .nav-links.open{display:flex}.nav-links a{font-size:.9rem;letter-spacing:.25em;color:var(--white)}
+  .hamburger{display:flex;z-index:300}
+  .hero{padding:0 1.5rem 4rem}.hero h1{font-size:clamp(2.6rem,10vw,4rem)}
+  .sect,.sect-sm{padding:4rem 1.5rem}
+  .coll-card{flex:0 0 280px}
+  .about-grid{grid-template-columns:1fr;gap:2.5rem}.about-visual{max-width:400px}.about-accent{display:none}
+  .srv-grid{grid-template-columns:1fr}
+  .contact-grid{grid-template-columns:1fr;gap:3rem}.c-form .f-row{grid-template-columns:1fr}
+  .f-top{grid-template-columns:1fr 1fr;gap:2rem}.f-bottom{flex-direction:column;gap:1rem;text-align:center}
+  .ch-row{grid-template-columns:1fr}
+}
+
+/* ANIMATIONS */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.4,0,.2,1)}
+.reveal.vis{opacity:1;transform:translateY(0)}.reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}.reveal-d3{transition-delay:.3s}
+</style>
+</head>
+<body>
+
+<!-- SUCCESS TOAST -->
+<div class="success-msg" id="toast"></div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a href="#home" class="nav-logo"><img src="logo.png" alt="Celestia"></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#home" onclick="closeNav()">Home</a></li>
+    <li><a href="#collections" onclick="closeNav()">Shop</a></li>
+    <li><a href="#about" onclick="closeNav()">About</a></li>
+    <li><a href="#reviews" onclick="closeNav()">Reviews</a></li>
+    <li><a href="#contact" onclick="closeNav()">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="nav-lang" onclick="toggleLang(this)">العربية</button>
+    <button class="nav-lang" onclick="openLogin()" style="border-color:rgba(184,149,106,.35);color:var(--gold2)">Login</button>
+    <button class="nav-cart" onclick="openCart()">🛒 <span class="cart-count" id="cartCount">0</span></button>
+    <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <video class="hero-video" autoplay muted playsinline id="heroVid"><source src="hero-video.mp4" type="video/mp4"></video>
+  <div class="hero-overlay"></div>
+  <div class="hero-line"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Luxury Accessories · Amman</div>
+    <h1>Where Style<br>Meets <span class="gold italic">Sparkle</span></h1>
+    <p class="hero-desc">Curated accessories and premium cosmetics, handpicked to add that perfect touch of magic to your look.</p>
+    <div class="hero-actions">
+      <a href="#shop" class="btn btn-gold">Shop Now →</a>
+      <a href="https://www.instagram.com/celestiaaccessories.jo/" target="_blank" class="btn btn-ghost">@celestiaaccessories.jo</a>
+    </div>
+  </div>
+  <div class="hero-scroll">Scroll<br>to explore</div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap"><div class="marquee">
+  <span>Max Factor</span><span>Maybelline</span><span>ArtDeco</span><span>Essence</span><span>Bourjois Paris</span><span>Pastel</span>
+  <span>Max Factor</span><span>Maybelline</span><span>ArtDeco</span><span>Essence</span><span>Bourjois Paris</span><span>Pastel</span>
+</div></div>
+
+<!-- COLLECTIONS -->
+<section class="sect" id="collections">
+  <div class="sect-header reveal"><div class="sect-label">Collections</div><div class="sect-title">Shop Our Edit</div></div>
+  <div class="coll-scroll">
+    <a href="#shop" class="coll-card coll-bags reveal"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Coming Soon</div><h3>Bags</h3><p>Clutches, totes & evening bags</p><div class="coll-link">Browse →</div></div></a>
+    <a href="#shop" class="coll-card coll-makeup reveal reveal-d1"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Available Now</div><h3>Make-up</h3><p>Premium cosmetics</p><div class="coll-link">Browse →</div></div></a>
+    <a href="#shop" class="coll-card coll-accessories reveal reveal-d2"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Unique Pieces</div><h3>Accessories</h3><p>Jewelry, hair & more</p><div class="coll-link">Browse →</div></div></a>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section class="sect" id="shop" style="background:var(--surface)">
+  <div class="sect-header reveal"><div class="sect-label">Shop</div><div class="sect-title">Our Products</div><div class="sect-desc">Premium cosmetics and beauty essentials. Add to cart and checkout with delivery.</div></div>
+  <div class="shop-filters reveal">
+    <button class="shop-filter active" onclick="filterProducts('all',this)">All</button>
+    <button class="shop-filter" onclick="filterProducts('bourjois',this)">Bourjois</button>
+    <button class="shop-filter" onclick="filterProducts('maxfactor',this)">Max Factor</button>
+    <button class="shop-filter" onclick="filterProducts('essence',this)">Essence</button>
+    <button class="shop-filter" onclick="filterProducts('maybelline',this)">Maybelline</button>
+    <button class="shop-filter" onclick="filterProducts('pastel',this)">Pastel</button>
+  </div>
+  <div class="prod-grid reveal" id="prodGrid"></div>
+</section>
+
+<!-- ABOUT -->
+<section class="sect" id="about">
+  <div class="about-grid">
+    <div class="about-visual reveal"><div class="about-accent"></div><div class="about-img"><div class="about-img-inner">
+      <div class="q-mark">"</div>
+      <blockquote>Accessories speak volumes about your personal style, silently narrating the unique tale of who you are and showcasing a captivating timeline of cherished memories.</blockquote>
+      <div style="margin-top:1.5rem;font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);opacity:.7">Rana Batmani</div>
+      <div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:.2rem">Founder &amp; Owner</div>
+    </div></div></div>
+    <div class="about-text reveal reveal-d1">
+      <div class="sect-label">Our Story</div><div class="sect-title">Celestia Accessories</div>
+      <p>Founded in Amman with a passion for elegance, Celestia is a boutique where every piece is chosen to make you feel extraordinary.</p>
+      <p>From our curated bags and statement jewelry to our premium cosmetics from Max Factor, Maybelline, ArtDeco, Essence, and Bourjois — we bring you designs that transform your everyday into something remarkable.</p>
+      <div class="about-stats"><div class="stat"><div class="stat-num">5.0</div><div class="stat-label">Rating</div></div><div class="stat"><div class="stat-num">27+</div><div class="stat-label">Reviews</div></div><div class="stat"><div class="stat-num">6</div><div class="stat-label">Brands</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="sect-sm" id="services">
+  <div class="sect-header center reveal"><div class="sect-label">Services</div><div class="sect-title">How to Shop With Us</div></div>
+  <div class="srv-grid reveal">
+    <div class="srv-item"><div class="srv-icon">🏪</div><h4>In-Store</h4><p>Visit our Amman boutique</p></div>
+    <div class="srv-item"><div class="srv-icon">📦</div><h4>Pick-Up</h4><p>Order ahead, collect at your convenience</p></div>
+    <div class="srv-item"><div class="srv-icon">🚚</div><h4>Delivery</h4><p>We deliver across Amman and Jordan</p></div>
+    <div class="srv-item"><div class="srv-icon">💬</div><h4>WhatsApp</h4><p>Message us to browse and order</p></div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="sect" id="reviews" style="background:var(--surface)">
+  <div class="sect-header reveal"><div class="sect-label">Testimonials</div><div class="sect-title">What Our Clients Say</div></div>
+  <div class="rev-grid">
+    <div class="rev-card reveal"><div class="rev-quote">"</div><div class="rev-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="rev-text">"Fantastic selection — from stylish jewelry and trendy bags to everyday essentials. The quality is great for the price."</div><div class="rev-author">Dynamic Kubsu C.</div><div class="rev-role">Google Review</div></div>
+    <div class="rev-card reveal reveal-d1"><div class="rev-quote">"</div><div class="rev-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="rev-text">"A dream come true for style lovers! Every item shines with elegance and creativity. I always leave feeling more confident."</div><div class="rev-author">Rihab A.</div><div class="rev-role">Google Review</div></div>
+    <div class="rev-card reveal reveal-d2"><div class="rev-quote">"</div><div class="rev-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="rev-text">"An impressive collection of beautiful unique accessories — each piece tells a story. Professional and friendly staff."</div><div class="rev-author">Eva S.</div><div class="rev-role">Google Review</div></div>
+  </div>
+  <div class="rev-badge reveal"><div class="rb-num">5.0</div><div class="rb-info"><strong>Excellent</strong>Based on 27 Google reviews</div></div>
+</section>
+
+<!-- CONTACT -->
+<section class="sect" id="contact">
+  <div class="contact-grid">
+    <div class="reveal">
+      <div class="sect-label">Contact</div><div class="sect-title">Visit Our Boutique</div>
+      <div style="margin-top:2rem">
+        <div class="c-detail"><div class="c-lbl">Address</div><div class="c-val">Shihan Al-Oqlah St. 9<br>Amman, Jordan</div></div>
+        <div class="c-detail"><div class="c-lbl">Hours</div><div class="c-val">Mon–Thu, Sat–Sun: 10 AM – 2 PM, 4 – 8 PM<br>Friday: Closed</div></div>
+        <div class="c-detail"><div class="c-lbl">Phone</div><div class="c-val"><a href="tel:+96278607710">07 8607 7100</a></div></div>
+        <div class="c-detail"><div class="c-lbl">Instagram</div><div class="c-val"><a href="https://www.instagram.com/celestiaaccessories.jo/" target="_blank">@celestiaaccessories.jo</a></div></div>
+      </div>
+      <a href="https://wa.me/96278607710" target="_blank" class="c-wa">💬 WhatsApp Us</a>
+      <a href="https://www.google.com/maps/search/?api=1&query=Celestia+accessories+Amman&query_place_id=ChIJS9zRJAChHBURKDzpNsCujRQ" target="_blank" style="display:block;margin-top:2.5rem;background:var(--surface);border:1px solid rgba(184,149,106,.08);padding:1.5rem;text-align:center">
+        <div style="font-size:2rem;margin-bottom:.8rem">📍</div>
+        <div style="font-family:var(--serif);font-size:1.1rem;margin-bottom:.4rem">Find Us on Google Maps</div>
+        <div style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)">Open in Maps →</div>
+      </a>
+    </div>
+    <div class="c-form reveal reveal-d1">
+      <div class="sect-label">Send a Message</div>
+      <div class="f-row"><div><label>Name</label><input type="text" placeholder="Your name"></div><div><label>Phone</label><input type="tel" placeholder="+962"></div></div>
+      <div><label>Email</label><input type="email" placeholder="your@email.com"></div>
+      <div><label>Message</label><textarea placeholder="How can we help?"></textarea></div>
+      <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:.5rem">Send Message</button>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sect-sm" id="faq" style="background:var(--surface)">
+  <div class="sect-header center reveal"><div class="sect-label">FAQ</div><div class="sect-title">Common Questions</div></div>
+  <div class="faq-list">
+    <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Do you deliver outside Amman?</span><span class="faq-toggle">+</span></button><div class="faq-a">Yes, we deliver across Jordan. Delivery fee is 2 JOD within Amman and 3 JOD outside Amman.</div></div>
+    <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Are all products authentic?</span><span class="faq-toggle">+</span></button><div class="faq-a">Absolutely. We are authorized retailers for all brands we carry.</div></div>
+    <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>How do I pay?</span><span class="faq-toggle">+</span></button><div class="faq-a">You can pay online via PayPal, or choose Cash on Delivery when you checkout.</div></div>
+    <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>What are your opening hours?</span><span class="faq-toggle">+</span></button><div class="faq-a">Mon–Thu & Sat–Sun: 10 AM – 2 PM, 4 – 8 PM. Closed Fridays.</div></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="f-top">
+    <div class="f-brand"><div class="nav-logo"><img src="logo.png" alt="Celestia"></div><p>Where style meets sparkle. An accessories boutique in Amman, Jordan.</p></div>
+    <div class="f-col"><h5>Shop</h5><a href="#shop">All Products</a><a href="#collections">Collections</a><a href="#shop">Best Sellers</a></div>
+    <div class="f-col"><h5>Company</h5><a href="#about">About</a><a href="#services">Services</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a></div>
+    <div class="f-col"><h5>Connect</h5><a href="https://www.instagram.com/celestiaaccessories.jo/" target="_blank">Instagram</a><a href="https://wa.me/96278607710" target="_blank">WhatsApp</a><a href="tel:+96278607710">07 8607 7100</a></div>
+  </div>
+  <div class="f-bottom"><span>© 2026 Celestia Accessories</span><span>Amman, Jordan</span></div>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header"><h3>Your Cart</h3><button class="cart-close" onclick="closeCart()">✕</button></div>
+  <div class="cart-items" id="cartItems"><div class="cart-empty">Your cart is empty</div></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span class="ct-label">Subtotal</span><span class="ct-price" id="cartTotal">0.00 JOD</span></div>
+    <button class="cart-checkout" onclick="openCheckout()">Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="checkout-overlay" id="checkoutModal">
+  <div class="checkout-box">
+    <div class="sect-label">Checkout</div>
+    <h2>Delivery Details</h2>
+    <div class="ch-row">
+      <div class="ch-field"><label>Full Name</label><input type="text" id="chName" placeholder="Your full name"></div>
+      <div class="ch-field"><label>Phone</label><input type="tel" id="chPhone" placeholder="+962 7XXXXXXXX"></div>
+    </div>
+    <div class="ch-field"><label>Delivery Area</label>
+      <select id="chArea"><option value="amman">Amman (2 JOD delivery)</option><option value="outside">Outside Amman (3 JOD delivery)</option></select>
+    </div>
+    <div class="ch-field"><label>Full Address</label><input type="text" id="chAddress" placeholder="Street, building, floor, apartment"></div>
+    <div class="ch-field"><label>Notes (optional)</label><input type="text" id="chNotes" placeholder="Any special instructions"></div>
+    <div class="ch-summary" id="chSummary"></div>
+    <div class="sect-label" style="margin-top:2rem">Payment Method</div>
+    <div class="payment-options">
+      <div class="pay-option selected" onclick="selectPayment(this,'cod')"><div class="pay-radio"></div><div class="pay-info"><div class="pay-title">Cash on Delivery</div><div class="pay-sub">Pay when your order arrives</div></div></div>
+      <div class="pay-option" onclick="selectPayment(this,'paypal')"><div class="pay-radio"></div><div class="pay-info"><div class="pay-title">PayPal / Card</div><div class="pay-sub">Pay securely with PayPal, Visa, or Mastercard</div></div></div>
+    </div>
+    <div id="paypal-buttons" style="display:none;margin:1rem 0"></div>
+    <button class="ch-place" id="codBtn" onclick="placeOrder()">Place Order — Cash on Delivery</button>
+    <button class="ch-back" onclick="closeCheckout()">← Back to Cart</button>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="login-overlay" id="loginModal">
+  <div class="login-box">
+    <button class="login-close" onclick="closeLogin()">✕</button>
+    <div class="sect-label">Welcome Back</div>
+    <h2>Sign In</h2>
+    <div class="login-field"><label>Email</label><input type="email" placeholder="your@email.com"></div>
+    <div class="login-field"><label>Password</label><div class="pw-wrap"><input type="password" id="pwInput" placeholder="Enter password">
+      <button class="pw-toggle" onclick="togglePw()" type="button" id="pwBtn"><svg id="eyeOpen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg id="eyeClosed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+    </div></div>
+    <button class="login-btn">Sign In</button>
+    <div style="text-align:right;margin-top:.8rem"><a href="#" onclick="event.preventDefault()" style="font-size:.75rem;color:var(--gold)">Forgot password?</a></div>
+    <div class="login-divider">or</div>
+    <div class="login-signup">Don't have an account? <a href="#" onclick="event.preventDefault()">Create one</a></div>
+  </div>
+</div>
+
+<script>
+// === CONFIG — Replace with your keys ===
+const SUPABASE_URL = 'https://hbhrbdvwtbquskdgohem.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiaHJiZHZ3dGJxdXNrZGdvaGVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNTE2NjUsImV4cCI6MjA5ODkyNzY2NX0.4RwwQmG4hdO8U4FB6doVvWyMtatG9RpEi3OSfRGe-js';
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+// === PRODUCT DATA ===
+const products = [
+  {id:1,brand:'bourjois',name:'Always Fabulous Foundation',desc:'Full coverage · SPF 20 · 24H',price:21,img:'products/bourjois-always-fabulous.jpg',colors:[{name:'210 Vanilla',hex:'#E8D5B8'},{name:'310 Beige',hex:'#D4B896'},{name:'410 Golden Beige',hex:'#C4A070'}]},
+  {id:2,brand:'bourjois',name:'Healthy Mix Clean',desc:'Vitamins C+E · Radiant glow · 24H',price:16.9,img:'products/bourjois-healthy-mix-clean.jpg',colors:[{name:'001 Fair',hex:'#F0DCC8'},{name:'002 Light',hex:'#E8CEB4'},{name:'003 Light Medium',hex:'#D4B896'},{name:'004 Medium',hex:'#C4A070'}]},
+  {id:3,brand:'bourjois',name:'Air Mat Foundation',desc:'Matte · Undetectable · 24H',price:16,img:'products/bourjois-air-mat.jpg',colors:[{name:'01 Rose Ivory',hex:'#F0DCC8'},{name:'02 Vanilla',hex:'#E8D5B8'},{name:'03 Beige',hex:'#D4B896'}]},
+  {id:4,brand:'bourjois',name:'Healthy Mix Foundation',desc:'16H · Anti-fatigue · Vitamin C,E,B5',price:16,img:'products/bourjois-healthy-mix-foundation.jpg',colors:[]},
+  {id:5,brand:'bourjois',name:'Rouge Velvet Lipstick',desc:'Velvet finish · Long-lasting',price:14.5,img:'products/bourjois-rouge-velvet.jpg',colors:[{name:'No 05 Rouge',hex:'#8B1A1A'},{name:'No 24',hex:'#A0522D'},{name:'No 33 Rose',hex:'#C48A8A'},{name:'No 19 Place des Roses',hex:'#E8A0A0'}]},
+  {id:6,brand:'bourjois',name:'Twist Up Mascara',desc:'Long lasting · Extreme fiber',price:15.5,img:'products/bourjois-mascara.jpg',colors:[]},
+  {id:7,brand:'maxfactor',name:'Lipfinity Velvet Matte',desc:'24H wear · Multiple shades',price:16,img:'products/max-factor-lipfinity.jpg',colors:[{name:'20 Coco Crème',hex:'#B8856A'},{name:'30 Cool Coral',hex:'#CD5C5C'}]},
+  {id:8,brand:'maxfactor',name:'Facefinity Compact',desc:'Medium coverage powder · SPF 20',price:11,img:'products/max-factor-compact.jpg',colors:[{name:'001 Porcelain',hex:'#F5E6D3'},{name:'002 Ivory',hex:'#EEDCC5'},{name:'003 Natural',hex:'#E0CAA8'}]},
+  {id:9,brand:'maxfactor',name:'2000 Calorie Mascara',desc:'Full volume · Waterproof option',price:6,img:'products/max-factor-mascara.jpg',colors:[{name:'Gold (Volume)',hex:'#C9A96E'},{name:'Blue (Waterproof)',hex:'#4682B4'}]},
+  {id:10,brand:'maxfactor',name:'Creme Puff Powder',desc:'All-in-one · Since 1953',price:6,img:'products/max-factor-creme-puff.jpg',colors:[]},
+  {id:11,brand:'maybelline',name:'Sky High Mascara',desc:'Volume & length · Black',price:13,img:'products/maybelline-sky-high.jpg',colors:[]},
+  {id:12,brand:'essence',name:'I ❤ Flawless Skin Foundation',desc:'Matte & full coverage · 30ML',price:6,img:'products/essence-foundation.jpg',colors:[]},
+  {id:13,brand:'essence',name:'16h Cover & Last Powder',desc:'With mirror & sponge',price:4,img:'products/essence-powder-foundation.jpg',colors:[]},
+  {id:14,brand:'essence',name:'Heart Core Lip Balm',desc:'Fruity · 10% sweet almond oil',price:1.8,img:'products/essence-heart-core.jpg',colors:[]},
+  {id:15,brand:'essence',name:'Fix & Last 14h Loose Powder',desc:'Matte · Blurring · Waterproof',price:4,img:'products/essence-loose-powder.jpg',colors:[]},
+  {id:16,brand:'essence',name:'Banana Loose Powder',desc:'Mattifying · Fixing · Baking',price:4,img:'products/essence-banana-powder.jpg',colors:[]},
+  {id:17,brand:'pastel',name:'Quick Dry Solution',desc:'Shine · Protects manicure',price:3.5,img:'products/pastel-quick-dry.jpg',colors:[]},
+  {id:18,brand:'pastel',name:'Nail Care Gel',desc:'With calcium · Strengthening',price:3.5,img:'products/pastel-nail-care-gel.jpg',colors:[]},
+  {id:19,brand:'pastel',name:'Pastel Nail Polish',desc:'Classic collection · 2.00 JD each',price:2,img:'products/pastel-classic-red.jpg',colors:[{name:'Red No.10',hex:'#B22222'},{name:'Red No.28',hex:'#DC143C'},{name:'Wild Red No.33',hex:'#8B0000'},{name:'Cardinal Red No.37',hex:'#722F37'},{name:'Pink No.08',hex:'#DB7093'},{name:'Rose Gem No.310',hex:'#B4838A'},{name:'Blush Pink No.266',hex:'#D4919A'},{name:'Blue No.11',hex:'#1937C7'},{name:'Grey Blue No.13',hex:'#6B8BA4'},{name:'No.229',hex:'#1E3A8A'},{name:'No.269',hex:'#4A5568'},{name:'Winter Garden No.246',hex:'#8BAFC4'},{name:'Grey No.312',hex:'#9DA5B0'},{name:'Dark Black No.38',hex:'#1A1A1A'},{name:'Dark Purple No.44',hex:'#3E2723'},{name:'Clear White No.01',hex:'#F5F5F5'},{name:'Lemonade No.295',hex:'#E8C820'},{name:'Best Selling No.293',hex:'#C8B8A0'},{name:'Glittery No.249',hex:'#C0C0C0'}]},
+  {id:20,brand:'pastel',name:'Pastel Nude Polish',desc:'Nude collection · 2.00 JD each',price:2,img:'products/nude-beige-hand.jpg',colors:[{name:'Dreamer No.769',hex:'#D4A0A0'},{name:'Kind No.762',hex:'#E8C8D0'},{name:'Beige No.755',hex:'#C4A882'},{name:'Bride Nude No.751',hex:'#C8B8A0'},{name:'Milkshake No.765',hex:'#B8A090'},{name:'Buff No.759',hex:'#A89888'},{name:'Princess No.756',hex:'#E0C8C0'}]},
+  {id:21,brand:'pastel',name:'Pastel Pure Polish',desc:'Pure collection · 2.00 JD each',price:2,img:'products/pure-shimmer-hand.jpg',colors:[{name:'Pure No.607',hex:'#E8D0C0'},{name:'Shimmering Fairy No.602',hex:'#C8B0A8'},{name:'Pure No.621',hex:'#7B4060'},{name:'Pure Nude No.616',hex:'#D8C0B8'}]},
+];
+
+// === RENDER PRODUCTS ===
+function renderProducts(){
+  const grid=document.getElementById('prodGrid');
+  grid.innerHTML=products.map(p=>{
+    const colorsHtml=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
+    return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}">
+      <div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
+      <div class="prod-brand">${p.brand==='maxfactor'?'Max Factor':p.brand.charAt(0).toUpperCase()+p.brand.slice(1)}</div>
+      <div class="prod-name">${p.name}</div>
+      <div class="prod-desc">${p.desc}</div>
+      <div class="prod-price">${p.price.toFixed(2)} JOD</div>
+      ${colorsHtml}
+      <button class="add-cart" onclick="addToCart(${p.id})">🛒 Add to Cart</button>
+    </div>`;
+  }).join('');
+}
+renderProducts();
+
+function selectColor(e,pid){
+  e.stopPropagation();
+  const card=e.target.closest('.prod-card');
+  card.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+  e.target.closest('.color-swatch').classList.add('selected');
+}
+
+function filterProducts(brand,btn){
+  document.querySelectorAll('.shop-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.prod-card').forEach(c=>{
+    c.classList.toggle('hidden',brand!=='all'&&c.dataset.brand!==brand);
+  });
+}
+
+// === CART ===
+let cart=[];
+
+function addToCart(pid){
+  const p=products.find(x=>x.id===pid);
+  const card=document.querySelector(`.prod-card[data-id="${pid}"]`);
+  const selected=card?.querySelector('.color-swatch.selected');
+  const color=selected?selected.dataset.color:'';
+  const key=pid+'-'+color;
+  const existing=cart.find(x=>x.key===key);
+  if(existing){existing.qty++}
+  else{cart.push({key,id:pid,name:p.name,brand:p.brand,price:p.price,img:p.img,color,qty:1})}
+  updateCartUI();
+  const btn=card.querySelector('.add-cart');
+  btn.classList.add('added');btn.innerHTML='✓ Added';
+  setTimeout(()=>{btn.classList.remove('added');btn.innerHTML='🛒 Add to Cart'},1200);
+  showToast('Added to cart!');
+}
+
+function updateCartUI(){
+  const count=cart.reduce((s,i)=>s+i.qty,0);
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const el=document.getElementById('cartCount');
+  el.textContent=count;el.classList.toggle('show',count>0);
+  document.getElementById('cartTotal').textContent=total.toFixed(2)+' JOD';
+  const items=document.getElementById('cartItems');
+  if(!cart.length){items.innerHTML='<div class="cart-empty">Your cart is empty</div>';return}
+  items.innerHTML=cart.map((item,i)=>`<div class="cart-item">
+    <div class="cart-item-img"><img src="${item.img}" alt="${item.name}"></div>
+    <div class="cart-item-info">
+      <div class="cart-item-name">${item.name}</div>
+      ${item.color?`<div class="cart-item-variant">${item.color}</div>`:''}
+      <div class="cart-item-price">${item.price.toFixed(2)} JOD</div>
+      <div class="cart-item-qty">
+        <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
+        <span class="qty-num">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
+      </div>
+      <button class="cart-item-remove" onclick="removeItem(${i})">Remove</button>
+    </div>
+  </div>`).join('');
+}
+
+function changeQty(i,d){cart[i].qty+=d;if(cart[i].qty<1)cart.splice(i,1);updateCartUI()}
+function removeItem(i){cart.splice(i,1);updateCartUI()}
+function openCart(){document.getElementById('cartDrawer').classList.add('open');document.getElementById('cartOverlay').classList.add('open');document.body.style.overflow='hidden'}
+function closeCart(){document.getElementById('cartDrawer').classList.remove('open');document.getElementById('cartOverlay').classList.remove('open');document.body.style.overflow=''}
+
+// === CHECKOUT ===
+let paymentMethod='cod';
+let paypalRendered=false;
+
+function openCheckout(){
+  if(!cart.length)return;
+  closeCart();
+  document.getElementById('checkoutModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  updateCheckoutSummary();
+  // Reset to COD
+  selectPayment(document.querySelector('.pay-option'),'cod');
+}
+function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');document.body.style.overflow=''}
+
+function selectPayment(el,method){
+  document.querySelectorAll('.pay-option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');paymentMethod=method;
+  const ppContainer=document.getElementById('paypal-buttons');
+  const codBtn=document.getElementById('codBtn');
+  if(method==='paypal'){
+    codBtn.style.display='none';
+    ppContainer.style.display='block';
+    if(!paypalRendered && window.paypal){
+      renderPayPalButtons();
+      paypalRendered=true;
+    }
+  } else {
+    codBtn.style.display='block';
+    ppContainer.style.display='none';
+  }
+}
+
+function renderPayPalButtons(){
+  paypal.Buttons({
+    style:{layout:'vertical',color:'gold',shape:'rect',label:'pay',height:45},
+    createOrder:function(data,actions){
+      const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+      const tax=subtotal*0.16;
+      const area=document.getElementById('chArea').value;
+      const delivery=area==='amman'?2:3;
+      const total=subtotal+tax+delivery;
+      // Convert JOD to USD approximate (1 JOD ≈ 1.41 USD)
+      const usdTotal=(total*1.41).toFixed(2);
+      return actions.order.create({
+        purchase_units:[{amount:{value:usdTotal,currency_code:'USD'},description:'Celestia Accessories Order'}]
+      });
+    },
+    onApprove:function(data,actions){
+      return actions.order.capture().then(function(details){
+        const name=document.getElementById('chName').value;
+        const phone=document.getElementById('chPhone').value;
+        const address=document.getElementById('chAddress').value;
+        const area=document.getElementById('chArea').value;
+        const delivery=area==='amman'?2:3;
+        const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+        const tax=subtotal*0.16;
+        const total=subtotal+tax+delivery;
+        // Save to Supabase
+        saveOrder({name,phone,address,area,items:cart,subtotal,tax,delivery,total,payment:'paypal',paypal_id:details.id,status:'paid'});
+        // Notify via WhatsApp
+        const itemsList=cart.map(i=>`• ${i.name}${i.color?' ('+i.color+')':''} ×${i.qty} = ${(i.price*i.qty).toFixed(2)} JOD`).join('\n');
+        const msg=`✅ PAID Order (PayPal #${details.id}):\n${itemsList}\nSubtotal: ${subtotal.toFixed(2)} JOD\nTax (16%): ${tax.toFixed(2)} JOD\nDelivery: ${delivery} JOD\nTotal: ${total.toFixed(2)} JOD\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\nArea: ${area==='amman'?'Amman':'Outside Amman'}`;
+        window.open('https://wa.me/96278607710?text='+encodeURIComponent(msg),'_blank');
+        showToast('Payment successful! Order confirmed.');
+        cart=[];updateCartUI();closeCheckout();
+      });
+    },
+    onError:function(err){showToast('Payment failed. Please try again.')}
+  }).render('#paypal-buttons');
+}
+
+function updateCheckoutSummary(){
+  const area=document.getElementById('chArea').value;
+  const delivery=area==='amman'?2:3;
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const tax=subtotal*0.16;
+  const total=subtotal+tax+delivery;
+  document.getElementById('chSummary').innerHTML=`
+    ${cart.map(i=>`<div class="ch-summary-line"><span>${i.name}${i.color?' ('+i.color+')':''}  ×${i.qty}</span><span>${(i.price*i.qty).toFixed(2)} JOD</span></div>`).join('')}
+    <div class="ch-summary-line"><span>Tax (16%)</span><span>${tax.toFixed(2)} JOD</span></div>
+    <div class="ch-summary-line"><span>Delivery</span><span>${delivery.toFixed(2)} JOD</span></div>
+    <div class="ch-summary-total"><span>Total</span><span>${total.toFixed(2)} JOD</span></div>`;
+}
+document.getElementById('chArea')?.addEventListener('change',updateCheckoutSummary);
+
+function placeOrder(){
+  const name=document.getElementById('chName').value;
+  const phone=document.getElementById('chPhone').value;
+  const address=document.getElementById('chAddress').value;
+  if(!name||!phone||!address){showToast('Please fill in all required fields');return}
+  const area=document.getElementById('chArea').value;
+  const delivery=area==='amman'?2:3;
+  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const tax=subtotal*0.16;
+  const total=subtotal+tax+delivery;
+  // Save to Supabase
+  saveOrder({name,phone,address,area,items:cart,subtotal,tax,delivery,total,payment:'cod',status:'pending'});
+  // Send to WhatsApp
+  const itemsList=cart.map(i=>`• ${i.name}${i.color?' ('+i.color+')':''} ×${i.qty} = ${(i.price*i.qty).toFixed(2)} JOD`).join('\n');
+  const msg=`🛒 New Order (Cash on Delivery):\n${itemsList}\nSubtotal: ${subtotal.toFixed(2)} JOD\nTax (16%): ${tax.toFixed(2)} JOD\nDelivery: ${delivery} JOD\nTotal: ${total.toFixed(2)} JOD\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\nArea: ${area==='amman'?'Amman':'Outside Amman'}`;
+  window.open('https://wa.me/96278607710?text='+encodeURIComponent(msg),'_blank');
+  showToast('Order placed! We will confirm via WhatsApp.');
+  cart=[];updateCartUI();closeCheckout();
+}
+
+// === SUPABASE ORDER STORAGE ===
+async function saveOrder(order){
+  if(!sb) return console.log('Supabase not configured — order:', order);
+  try {
+    const {data,error} = await sb.from('orders').insert([{
+      customer_name: order.name,
+      phone: order.phone,
+      address: order.address,
+      area: order.area,
+      items: JSON.stringify(order.items),
+      subtotal: order.subtotal,
+      tax: order.tax,
+      delivery_fee: order.delivery,
+      total: order.total,
+      payment_method: order.payment,
+      paypal_id: order.paypal_id || null,
+      status: order.status,
+      created_at: new Date().toISOString()
+    }]);
+    if(error) console.error('Order save error:', error);
+    else console.log('Order saved:', data);
+  } catch(e){ console.error('Supabase error:', e) }
+}
+
+// === AUTH (Supabase) ===
+async function signUp(email, password, name){
+  if(!sb) return;
+  const {data,error} = await sb.auth.signUp({email,password,options:{data:{name}}});
+  if(error){showToast(error.message);return null}
+  showToast('Account created! Check your email to confirm.');
+  return data;
+}
+async function signIn(email, password){
+  if(!sb) return;
+  const {data,error} = await sb.auth.signInWithPassword({email,password});
+  if(error){showToast(error.message);return null}
+  showToast('Welcome back!');
+  closeLogin();
+  return data;
+}
+
+// === UI UTILS ===
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
+function closeNav(){document.getElementById('navLinks').classList.remove('open')}
+function toggleLang(btn){if(btn.textContent==='العربية'){btn.textContent='English';document.documentElement.dir='rtl';document.documentElement.lang='ar'}else{btn.textContent='العربية';document.documentElement.dir='ltr';document.documentElement.lang='en'}}
+function openLogin(){document.getElementById('loginModal').classList.add('open');document.body.style.overflow='hidden'}
+function closeLogin(){document.getElementById('loginModal').classList.remove('open');document.body.style.overflow=''}
+document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this)closeLogin()})
+function togglePw(){const inp=document.getElementById('pwInput');if(inp.type==='password'){inp.type='text';document.getElementById('eyeOpen').style.display='none';document.getElementById('eyeClosed').style.display='inline'}else{inp.type='password';document.getElementById('eyeOpen').style.display='inline';document.getElementById('eyeClosed').style.display='none'}}
+
+// Hero video cycling
+const heroVid=document.getElementById('heroVid');
+const heroVideos=['hero-video.mp4','hero-video-2.mp4'];
+let currentVid=0;
+heroVid.addEventListener('ended',()=>{
+  currentVid=(currentVid+1)%heroVideos.length;
+  heroVid.src=heroVideos[currentVid];
+  heroVid.play();
+});
+
+// Nav scroll
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>60)});
+// Scroll reveals
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')})},{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
