@@ -127,6 +127,18 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 @media(max-width:900px){.prod-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:600px){.prod-grid{grid-template-columns:1fr 1fr;gap:.8rem}}
 
+/* COLLECTION PAGE */
+.coll-page{position:fixed;inset:0;z-index:400;background:var(--bg);overflow-y:auto;display:none}
+.coll-page.open{display:block}
+.coll-page-header{padding:6rem 2.5rem 2rem;display:flex;justify-content:space-between;align-items:flex-start}
+.coll-page-close{font-size:1.5rem;color:var(--muted);cursor:pointer;padding:.5rem;transition:color .3s}
+.coll-page-close:hover{color:var(--gold)}
+.coll-page-body{padding:0 2.5rem 4rem}
+.coll-page-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
+.coll-empty{text-align:center;padding:4rem 2rem;color:var(--dim);font-family:var(--serif);font-size:1.2rem}
+@media(max-width:900px){.coll-page-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.coll-page-grid{grid-template-columns:1fr 1fr;gap:.8rem}.coll-page-header{padding:5rem 1.5rem 1.5rem}.coll-page-body{padding:0 1.5rem 3rem}}
+
 /* ABOUT */
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;max-width:1100px;margin:0 auto}
 .about-text p{font-size:.9rem;line-height:1.9;color:var(--muted);margin-bottom:1.2rem}
@@ -342,9 +354,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 <section class="sect" id="collections">
   <div class="sect-header reveal"><div class="sect-label">Collections</div><div class="sect-title">Shop Our Edit</div></div>
   <div class="coll-scroll">
-    <a href="#shop" class="coll-card coll-bags reveal"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Coming Soon</div><h3>Bags</h3><p>Clutches, totes & evening bags</p><div class="coll-link">Browse →</div></div></a>
-    <a href="#shop" class="coll-card coll-makeup reveal reveal-d1"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Available Now</div><h3>Make-up</h3><p>Premium cosmetics</p><div class="coll-link">Browse →</div></div></a>
-    <a href="#shop" class="coll-card coll-accessories reveal reveal-d2"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Unique Pieces</div><h3>Accessories</h3><p>Jewelry, hair & more</p><div class="coll-link">Browse →</div></div></a>
+    <div onclick="openCollPage('bags','Bags','Clutches, totes & evening bags — coming soon')" class="coll-card coll-bags reveal"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Coming Soon</div><h3>Bags</h3><p>Clutches, totes & evening bags</p><div class="coll-link">Browse →</div></div></div>
+    <div onclick="openCollPage('makeup','Make-up','Premium cosmetics from top brands')" class="coll-card coll-makeup reveal reveal-d1"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Available Now</div><h3>Make-up</h3><p>Premium cosmetics</p><div class="coll-link">Browse →</div></div></div>
+    <div onclick="openCollPage('accessories','Accessories','Jewelry, hair accessories & statement pieces — coming soon')" class="coll-card coll-accessories reveal reveal-d2"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Unique Pieces</div><h3>Accessories</h3><p>Jewelry, hair & more</p><div class="coll-link">Browse →</div></div></div>
   </div>
 </section>
 
@@ -452,6 +464,21 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
   <div class="f-bottom"><span>© 2026 Celestia Accessories</span><span>Amman, Jordan</span></div>
 </footer>
 
+<!-- COLLECTION PAGE -->
+<div class="coll-page" id="collPage">
+  <div class="coll-page-header">
+    <div>
+      <div class="sect-label" id="collPageLabel">Collection</div>
+      <div class="sect-title" id="collPageTitle"></div>
+      <div class="sect-desc" id="collPageDesc" style="margin-top:.5rem"></div>
+    </div>
+    <button class="coll-page-close" onclick="closeCollPage()">✕</button>
+  </div>
+  <div class="coll-page-body">
+    <div class="coll-page-grid" id="collPageGrid"></div>
+  </div>
+</div>
+
 <!-- CART DRAWER -->
 <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
@@ -554,6 +581,27 @@ function renderProducts(){
   }).join('');
 }
 renderProducts();
+
+// Collection page
+function openCollPage(cat,title,desc){
+  document.getElementById('collPageTitle').textContent=title;
+  document.getElementById('collPageDesc').textContent=desc;
+  const grid=document.getElementById('collPageGrid');
+  let filtered=[];
+  if(cat==='makeup') filtered=products;
+  if(!filtered.length){
+    grid.innerHTML='<div class="coll-empty">Coming soon — stay tuned for our latest arrivals.</div>';
+  } else {
+    grid.innerHTML=filtered.map(p=>{
+      const ch=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>':'';
+      return `<div class="prod-card" data-brand="${p.brand}"><div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div><div class="prod-brand">${p.brand}</div><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div>${ch}<div class="prod-price">${p.price.toFixed(2)} JOD</div><button class="add-cart" onclick="addToCart(${p.id})">Add to Cart</button></div>`;
+    }).join('');
+  }
+  document.getElementById('collPage').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.getElementById('collPage').scrollTop=0;
+}
+function closeCollPage(){document.getElementById('collPage').classList.remove('open');document.body.style.overflow=''}
 
 function selectColor(e,pid){
   e.stopPropagation();
@@ -784,7 +832,7 @@ function togglePw(){const inp=document.getElementById('pwInput');if(inp.type==='
 
 // Hero video cycling
 const heroVid=document.getElementById('heroVid');
-const heroVideos=['hero-video-2.mp4','hero-video.mp4'];
+const heroVideos=['hero-video.mp4','hero-video-2.mp4'];
 let currentVid=0;
 heroVid.addEventListener('ended',()=>{
   currentVid=(currentVid+1)%heroVideos.length;
