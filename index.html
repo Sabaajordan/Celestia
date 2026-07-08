@@ -130,6 +130,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 /* COLLECTION PAGE */
 .coll-page{position:fixed;inset:0;z-index:400;background:var(--bg);overflow-y:auto;display:none}
 .coll-page.open{display:block}
+
 .coll-page-header{padding:6rem 2.5rem 2rem;display:flex;justify-content:space-between;align-items:flex-start}
 .coll-page-close{font-size:1.5rem;color:var(--muted);cursor:pointer;padding:.5rem;transition:color .3s}
 .coll-page-close:hover{color:var(--gold)}
@@ -317,6 +318,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
     <li><a href="#about" onclick="closeNav()">About</a></li>
     <li><a href="#reviews" onclick="closeNav()">Reviews</a></li>
     <li><a href="#contact" onclick="closeNav()">Contact</a></li>
+    <li><a href="javascript:void(0)" onclick="closeNav();openPage('faqPage')">FAQ</a></li>
   </ul>
   <div class="nav-right">
     <button class="nav-lang" onclick="toggleLang(this)">العربية</button>
@@ -458,11 +460,32 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
   <div class="f-top">
     <div class="f-brand"><div class="nav-logo"><img src="logo.png" alt="Celestia"></div><p>Where style meets sparkle. An accessories boutique in Amman, Jordan.</p></div>
     <div class="f-col"><h5>Shop</h5><a href="#shop">All Products</a><a href="#collections">Collections</a><a href="#shop">Best Sellers</a></div>
-    <div class="f-col"><h5>Company</h5><a href="#about">About</a><a href="#services">Services</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a></div>
+    <div class="f-col"><h5>Company</h5><a href="#about">About</a><a href="#services">Services</a><a href="#reviews">Reviews</a><a href="javascript:void(0)" onclick="openPage('faqPage')">FAQ</a></div>
     <div class="f-col"><h5>Connect</h5><a href="https://www.instagram.com/celestiaaccessories.jo/" target="_blank">Instagram</a><a href="https://wa.me/96278607710" target="_blank">WhatsApp</a><a href="tel:+96278607710">07 8607 7100</a></div>
   </div>
   <div class="f-bottom"><span>© 2026 Celestia Accessories</span><span>Amman, Jordan</span></div>
 </footer>
+
+<!-- FAQ PAGE -->
+<div class="coll-page" id="faqPage">
+  <div class="coll-page-header">
+    <div><div class="sect-label">Support</div><div class="sect-title">Frequently Asked Questions</div></div>
+    <button class="coll-page-close" onclick="closePage('faqPage')">✕</button>
+  </div>
+  <div class="coll-page-body">
+    <div class="faq-list" style="max-width:700px">
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Do you deliver outside Amman?</span><span class="faq-toggle">+</span></button><div class="faq-a">Yes, we deliver across Jordan. Delivery fee is 2 JOD within Amman and 3 JOD outside Amman.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Are all products authentic?</span><span class="faq-toggle">+</span></button><div class="faq-a">Absolutely. We are authorized retailers for all brands we carry — Bourjois, Max Factor, Essence, Maybelline, ArtDeco, and Pastel.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>How do I pay?</span><span class="faq-toggle">+</span></button><div class="faq-a">You can pay online via PayPal or card, or choose Cash on Delivery at checkout.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>What are your opening hours?</span><span class="faq-toggle">+</span></button><div class="faq-a">Monday–Thursday and Saturday–Sunday: 10 AM – 2 PM and 4 – 8 PM. Closed on Fridays.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Can I order via WhatsApp?</span><span class="faq-toggle">+</span></button><div class="faq-a">Yes! Message us at 07 8607 7100 with what you're looking for and we'll assist you.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Do you accept returns or exchanges?</span><span class="faq-toggle">+</span></button><div class="faq-a">Contact us within 3 days of receiving your order for exchanges. Items must be unused and in original packaging.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>How long does delivery take?</span><span class="faq-toggle">+</span></button><div class="faq-a">Delivery within Amman typically takes 1–2 days. Outside Amman may take 2–3 days.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Do you offer gift wrapping?</span><span class="faq-toggle">+</span></button><div class="faq-a">Yes, we offer complimentary gift wrapping. Just mention it when you place your order.</div></div>
+      <div class="faq-item"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Are your nail polishes halal certified?</span><span class="faq-toggle">+</span></button><div class="faq-a">Yes, our Pastel nail polishes are halal certified, as shown on the product packaging.</div></div>
+    </div>
+  </div>
+</div>
 
 <!-- COLLECTION PAGE -->
 <div class="coll-page" id="collPage">
@@ -583,6 +606,9 @@ function renderProducts(){
 renderProducts();
 
 // Collection page
+function openPage(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';document.getElementById(id).scrollTop=0}
+function closePage(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
+
 function openCollPage(cat,title,desc){
   document.getElementById('collPageTitle').textContent=title;
   document.getElementById('collPageDesc').textContent=desc;
