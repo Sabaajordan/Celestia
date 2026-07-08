@@ -593,7 +593,7 @@ function openCollPage(cat,title,desc){
     grid.innerHTML='<div class="coll-empty">Coming soon — stay tuned for our latest arrivals.</div>';
   } else {
     grid.innerHTML=filtered.map(p=>{
-      const ch=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>':'';
+      const ch=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
       return `<div class="prod-card" data-brand="${p.brand}"><div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div><div class="prod-brand">${p.brand}</div><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div>${ch}<div class="prod-price">${p.price.toFixed(2)} JOD</div><button class="add-cart" onclick="addToCart(${p.id})">Add to Cart</button></div>`;
     }).join('');
   }
