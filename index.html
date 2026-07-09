@@ -62,7 +62,7 @@
 <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD"></script>
 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+Infant:ital,wght@0,300;1,300&family=Cormorant:ital,wght@0,300;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+Infant:ital,wght@0,300;1,300&family=Cormorant:ital,wght@0,300;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -75,6 +75,11 @@
 }
 html{scroll-behavior:smooth}
 body{font-family:var(--sans);background:var(--bg);color:var(--white);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+/* Arabic / RTL */
+html[dir="rtl"] body{font-family:'Tajawal','Cairo',var(--sans);text-align:right}
+html[dir="rtl"] .hero h1,html[dir="rtl"] .sect-title,html[dir="rtl"] .sect-desc{font-family:'Tajawal','Cairo',serif}
+html[dir="rtl"] .marquee{direction:ltr}
+html[dir="rtl"] .prod-card,html[dir="rtl"] .coll-card{text-align:right}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
@@ -184,17 +189,17 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 @media(max-width:600px){.prod-grid{grid-template-columns:1fr 1fr;gap:.8rem}}
 
 /* COLLECTION PAGE */
-.coll-page{position:fixed;inset:0;z-index:400;background:var(--bg);overflow-y:auto;display:none}
-.coll-page.open{display:block}
-
-.coll-page-header{padding:6rem 2.5rem 2rem;display:flex;justify-content:space-between;align-items:flex-start}
-.coll-page-close{font-size:1.5rem;color:var(--muted);cursor:pointer;padding:.5rem;transition:color .3s}
-.coll-page-close:hover{color:var(--gold)}
-.coll-page-body{padding:0 2.5rem 4rem}
-.coll-page-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
+.coll-page{position:fixed;inset:0;z-index:400;background:rgba(6,5,4,.85);backdrop-filter:blur(10px);overflow-y:auto;display:none;align-items:flex-start;justify-content:center;padding:3rem 1rem}
+.coll-page.open{display:flex}
+.coll-page-inner{background:var(--surface);max-width:1100px;width:100%;border-radius:20px;padding:2rem 2rem 3rem;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid rgba(184,149,106,.15);margin:auto}
+.coll-page-header{padding:1rem 0 1.5rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.coll-page-close{font-size:1.4rem;color:var(--muted);cursor:pointer;padding:.5rem .8rem;transition:color .3s;background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.2);border-radius:8px;flex-shrink:0}
+.coll-page-close:hover{color:var(--gold);background:rgba(184,149,106,.15)}
+.coll-page-body{padding:0}
+.coll-page-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
 .coll-empty{text-align:center;padding:4rem 2rem;color:var(--dim);font-family:var(--serif);font-size:1.2rem}
-@media(max-width:900px){.coll-page-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:600px){.coll-page-grid{grid-template-columns:1fr 1fr;gap:.8rem}.coll-page-header{padding:5rem 1.5rem 1.5rem}.coll-page-body{padding:0 1.5rem 3rem}}
+@media(max-width:900px){.coll-page-grid{grid-template-columns:repeat(2,1fr)}.coll-page-inner{padding:1.5rem 1.2rem 2rem;border-radius:14px}}
+@media(max-width:600px){.coll-page-grid{grid-template-columns:1fr 1fr;gap:.8rem}.coll-page{padding:1rem .8rem}.coll-page-inner{padding:1.2rem 1rem 1.8rem}}
 
 /* ABOUT */
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;max-width:1100px;margin:0 auto}
@@ -531,17 +536,19 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 </footer>
 
 <!-- COLLECTION PAGE -->
-<div class="coll-page" id="collPage">
-  <div class="coll-page-header">
-    <div>
-      <div class="sect-label" id="collPageLabel">Collection</div>
-      <div class="sect-title" id="collPageTitle"></div>
-      <div class="sect-desc" id="collPageDesc" style="margin-top:.5rem"></div>
+<div class="coll-page" id="collPage" onclick="if(event.target===this)closeCollPage()">
+  <div class="coll-page-inner">
+    <div class="coll-page-header">
+      <div>
+        <div class="sect-label" id="collPageLabel">Collection</div>
+        <div class="sect-title" id="collPageTitle"></div>
+        <div class="sect-desc" id="collPageDesc" style="margin-top:.5rem"></div>
+      </div>
+      <button class="coll-page-close" onclick="closeCollPage()">✕</button>
     </div>
-    <button class="coll-page-close" onclick="closeCollPage()">✕</button>
-  </div>
-  <div class="coll-page-body">
-    <div class="coll-page-grid" id="collPageGrid"></div>
+    <div class="coll-page-body">
+      <div class="coll-page-grid" id="collPageGrid"></div>
+    </div>
   </div>
 </div>
 
@@ -637,76 +644,82 @@ const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE
 
 // === PRODUCT DATA ===
 const products = [
+  // ===== NAIL CARE =====
+  {id:17,nameAr:'سائل مجفف سريع للأظافر',descAr:'لمعان · يحمي المانيكير',brand:'pastel',name:'Quick Dry Solution',desc:'Shine · Protects manicure',price:3.5,img:'products/pastel-quick-dry.jpg',colors:[]},
+  {id:18,nameAr:'جل العناية بالأظافر',descAr:'بالكالسيوم · مقوّي',brand:'pastel',name:'Nail Care Gel',desc:'With calcium · Strengthening',price:3.5,img:'products/pastel-nail-care-gel.jpg',colors:[]},
+  {id:19,nameAr:'طلاء أظافر باستيل',descAr:'مجموعة كلاسيك · 2.00 دينار للقطعة',brand:'pastel',name:'Pastel Nail Polish',desc:'Classic collection · 2.00 JD each',price:2,img:'products/pastel-classic-red.jpg',colors:[{name:'Red No.10',hex:'#B22222',img:'products/pastel-classic-red.jpg'},{name:'Red No.28',hex:'#DC143C',img:'products/pastel-bright-red.jpg'},{name:'Wild Red No.33',hex:'#8B0000',img:'products/pastel-dark-red.jpg'},{name:'Cardinal Red No.37',hex:'#722F37',img:'products/pastel-wine-red.jpg'},{name:'Pink No.08',hex:'#DB7093',img:'products/pastel-light-pink.jpg'},{name:'Rose Gem No.310',hex:'#B4838A',img:'products/pastel-mauve.jpg'},{name:'Blush Pink No.266',hex:'#D4919A',img:'products/pastel-hot-pink.jpg'},{name:'Blue No.11',hex:'#1937C7',img:'products/pastel-cobalt.jpg'},{name:'Grey Blue No.13',hex:'#6B8BA4',img:'products/pastel-steel-blue.jpg'},{name:'No.229',hex:'#1E3A8A',img:'products/pastel-royal-blue.jpg'},{name:'No.269',hex:'#4A5568',img:'products/pastel-navy.jpg'},{name:'Winter Garden No.246',hex:'#8BAFC4',img:'products/pastel-baby-blue.jpg'},{name:'Grey No.312',hex:'#9DA5B0',img:'products/pastel-gray.jpg'},{name:'Dark Black No.38',hex:'#1A1A1A',img:'products/pastel-black.jpg'},{name:'Dark Purple No.44',hex:'#3E2723',img:'products/pastel-chocolate.jpg'},{name:'Clear White No.01',hex:'#F5F5F5'},{name:'Lemonade No.295',hex:'#E8C820',img:'products/pastel-yellow-hand.jpg'},{name:'Best Selling No.293',hex:'#C8B8A0',img:'products/pastel-shimmer-hand.jpg'},{name:'Glittery No.249',hex:'#C0C0C0',img:'products/pastel-silver-hand.jpg'}]},
+  {id:20,nameAr:'طلاء أظافر باستيل نيود',descAr:'مجموعة النيود · 2.00 دينار للقطعة',brand:'pastel',name:'Pastel Nude Polish',desc:'Nude collection · 2.00 JD each',price:2,img:'products/nude-beige-hand.jpg',colors:[{name:'Dreamer No.769',hex:'#D4A0A0',img:'products/pastel-nude-hand.jpg'},{name:'Kind No.762',hex:'#E8C8D0',img:'products/nude-light-pink-hand.jpg'},{name:'Beige No.755',hex:'#C4A882',img:'products/nude-caramel-bottle.jpg'},{name:'Bride Nude No.751',hex:'#C8B8A0',img:'products/nude-sand-bottle.jpg'},{name:'Milkshake No.765',hex:'#B8A090',img:'products/nude-mauve-bottle.jpg'},{name:'Buff No.759',hex:'#A89888',img:'products/nude-taupe-hand.jpg'},{name:'Princess No.756',hex:'#E0C8C0',img:'products/nude-peach-hand.jpg'}]},
+  {id:21,nameAr:'طلاء أظافر باستيل بيور',descAr:'مجموعة بيور · 2.00 دينار للقطعة',brand:'pastel',name:'Pastel Pure Polish',desc:'Pure collection · 2.00 JD each',price:2,img:'products/pure-shimmer-hand.jpg',colors:[{name:'Pure No.607',hex:'#E8D0C0',img:'products/pure-beige-bottle.jpg'},{name:'Shimmering Fairy No.602',hex:'#C8B0A8',img:'products/pure-matte-hand.jpg'},{name:'Pure No.621',hex:'#7B4060',img:'products/pure-plum-hand.jpg'},{name:'Pure Nude No.616',hex:'#D8C0B8',img:'products/pure-shimmer-hand.jpg'}]},
+
   // ===== MAKEUP =====
   // Foundations & Powders
-  {id:1,brand:'bourjois',name:'Always Fabulous Foundation',desc:'Full coverage · SPF 20 · 24H',price:21,img:'products/bourjois-always-fabulous.jpg',colors:[{name:'210 Vanilla',hex:'#E8D5B8'},{name:'310 Beige',hex:'#D4B896'},{name:'410 Golden Beige',hex:'#C4A070'}]},
-  {id:4,brand:'bourjois',name:'Healthy Mix Foundation',desc:'16H · Anti-fatigue · Vitamin C,E,B5',price:16,img:'products/bourjois-healthy-mix-foundation.jpg',colors:[]},
-  {id:2,brand:'bourjois',name:'Healthy Mix Clean',desc:'Vitamins C+E · Radiant glow · 24H',price:16.9,img:'products/bourjois-healthy-mix-clean.jpg',colors:[{name:'001 Fair',hex:'#F0DCC8'},{name:'002 Light',hex:'#E8CEB4'},{name:'003 Light Medium',hex:'#D4B896'},{name:'004 Medium',hex:'#C4A070'}]},
-  {id:3,brand:'bourjois',name:'Air Mat Foundation',desc:'Matte · Undetectable · 24H hold',price:16,img:'products/bourjois-air-mat.jpg',colors:[{name:'01 Rose Ivory',hex:'#F0DCC8'},{name:'02 Vanilla',hex:'#E8D5B8'},{name:'03 Beige',hex:'#D4B896'}]},
-  {id:8,brand:'maxfactor',name:'Facefinity Compact',desc:'Medium coverage powder · SPF 20',price:11,img:'products/max-factor-compact.jpg',colors:[{name:'001 Porcelain',hex:'#F5E6D3'},{name:'002 Ivory',hex:'#EEDCC5'},{name:'003 Natural',hex:'#E0CAA8'}]},
-  {id:10,brand:'maxfactor',name:'Creme Puff Powder',desc:'All-in-one · Since 1953',price:6,img:'products/max-factor-creme-puff.jpg',colors:[]},
-  {id:12,brand:'essence',name:'I ❤ Flawless Skin Foundation',desc:'Matte & full coverage · 30ML',price:6,img:'products/essence-foundation.jpg',colors:[]},
-  {id:13,brand:'essence',name:'16h Cover & Last Powder',desc:'With mirror & sponge',price:4,img:'products/essence-powder-foundation.jpg',colors:[]},
-  {id:15,brand:'essence',name:'Fix & Last 14h Loose Powder',desc:'Matte · Blurring · Waterproof',price:4,img:'products/essence-loose-powder.jpg',colors:[]},
-  {id:16,brand:'essence',name:'Banana Loose Powder',desc:'Mattifying · Fixing · Baking',price:4,img:'products/essence-banana-powder.jpg',colors:[]},
-  {id:35,brand:'essence',name:'Conceal Like A Pro Palette',desc:'Colour correcting · 4 correctors',price:3,img:'products/essence-conceal-pro.jpg',colors:[]},
+  {id:1,nameAr:'أساس أولويز فابيولوس',descAr:'تغطية كاملة · واقي شمس SPF 20 · يدوم 24 ساعة',brand:'bourjois',name:'Always Fabulous Foundation',desc:'Full coverage · SPF 20 · 24H',price:21,img:'products/bourjois-always-fabulous.jpg',colors:[{name:'210 Vanilla',hex:'#E8D5B8'},{name:'310 Beige',hex:'#D4B896'},{name:'410 Golden Beige',hex:'#C4A070'}]},
+  {id:4,nameAr:'أساس هيلثي ميكس',descAr:'يدوم 16 ساعة · مضاد للإرهاق · فيتامين C وE وB5',brand:'bourjois',name:'Healthy Mix Foundation',desc:'16H · Anti-fatigue · Vitamin C,E,B5',price:16,img:'products/bourjois-healthy-mix-foundation.jpg',colors:[]},
+  {id:2,nameAr:'هيلثي ميكس كلين',descAr:'فيتامينات C+E · إشراقة مضيئة · ترطيب 24 ساعة',brand:'bourjois',name:'Healthy Mix Clean',desc:'Vitamins C+E · Radiant glow · 24H',price:16.9,img:'products/bourjois-healthy-mix-clean.jpg',colors:[{name:'001 Fair',hex:'#F0DCC8'},{name:'002 Light',hex:'#E8CEB4'},{name:'003 Light Medium',hex:'#D4B896'},{name:'004 Medium',hex:'#C4A070'}]},
+  {id:3,nameAr:'أساس إير مات',descAr:'مطفي · طبيعي · يثبت 24 ساعة',brand:'bourjois',name:'Air Mat Foundation',desc:'Matte · Undetectable · 24H hold',price:16,img:'products/bourjois-air-mat.jpg',colors:[{name:'01 Rose Ivory',hex:'#F0DCC8'},{name:'02 Vanilla',hex:'#E8D5B8'},{name:'03 Beige',hex:'#D4B896'}]},
+  {id:8,nameAr:'مضغوطة فيسفينيتي',descAr:'بودرة تغطية متوسطة · SPF 20',brand:'maxfactor',name:'Facefinity Compact',desc:'Medium coverage powder · SPF 20',price:11,img:'products/max-factor-compact.jpg',colors:[{name:'001 Porcelain',hex:'#F5E6D3'},{name:'002 Ivory',hex:'#EEDCC5'},{name:'003 Natural',hex:'#E0CAA8'}]},
+  {id:10,nameAr:'بودرة كريم بوف',descAr:'متعددة الاستعمالات · منذ 1953',brand:'maxfactor',name:'Creme Puff Powder',desc:'All-in-one · Since 1953',price:6,img:'products/max-factor-creme-puff.jpg',colors:[]},
+  {id:12,nameAr:'أساس فلوليس سكن',descAr:'مطفي وتغطية كاملة · 30مل',brand:'essence',name:'I ❤ Flawless Skin Foundation',desc:'Matte & full coverage · 30ML',price:6,img:'products/essence-foundation.jpg',colors:[]},
+  {id:13,nameAr:'بودرة كوفر آند لاست 16 ساعة',descAr:'مع مرآة وإسفنجة',brand:'essence',name:'16h Cover & Last Powder',desc:'With mirror & sponge',price:4,img:'products/essence-powder-foundation.jpg',colors:[]},
+  {id:15,nameAr:'بودرة سائبة فيكس آند لاست',descAr:'مطفية · تنعيم · مقاومة للماء',brand:'essence',name:'Fix & Last 14h Loose Powder',desc:'Matte · Blurring · Waterproof',price:4,img:'products/essence-loose-powder.jpg',colors:[]},
+  {id:16,nameAr:'بودرة موز سائبة',descAr:'تثبيت · تعتيم · خبز الميك أب',brand:'essence',name:'Banana Loose Powder',desc:'Mattifying · Fixing · Baking',price:4,img:'products/essence-banana-powder.jpg',colors:[]},
+  {id:35,nameAr:'لوحة مصححات الألوان',descAr:'تصحيح لون البشرة · 4 مصححات',brand:'essence',name:'Conceal Like A Pro Palette',desc:'Colour correcting · 4 correctors',price:3,img:'products/essence-conceal-pro.jpg',colors:[]},
   // Contour & Highlight Palettes
-  {id:39,brand:'maxfactor',name:'Miracle Contouring Palette',desc:'1. Highlight · 2. Lift · 3. Contour · 8 shades',price:29,img:'products/maxfactor-miracle-contour.jpg',colors:[]},
-  {id:32,brand:'essence',name:'Glow & Bronze Palette',desc:'Goddess Glow · Sunkissed Sparkle · Tropical Sunlight',price:5.5,img:'products/essence-glow-bronze.jpg',colors:[]},
-  {id:33,brand:'essence',name:'Bloom Baby, Bloom! Palette',desc:'Eye & face palette · Shadow, highlight, blush',price:7,img:'products/essence-bloom-baby.jpg',colors:[]},
+  {id:39,nameAr:'لوحة الكونتور من ماكس فاكتور',descAr:'1. إبراز · 2. رفع · 3. كونتور · 8 درجات',brand:'maxfactor',name:'Miracle Contouring Palette',desc:'1. Highlight · 2. Lift · 3. Contour · 8 shades',price:29,img:'products/maxfactor-miracle-contour.jpg',colors:[]},
+  {id:32,nameAr:'لوحة جلو آند برونز',descAr:'جوديس جلو · صن كيسد سباركل · تروبيكال صن لايت',brand:'essence',name:'Glow & Bronze Palette',desc:'Goddess Glow · Sunkissed Sparkle · Tropical Sunlight',price:5.5,img:'products/essence-glow-bronze.jpg',colors:[]},
+  {id:33,nameAr:'لوحة بلوم بيبي بلوم',descAr:'لوحة للعين والوجه · ظلال، إبراز، أحمر خدود',brand:'essence',name:'Bloom Baby, Bloom! Palette',desc:'Eye & face palette · Shadow, highlight, blush',price:7,img:'products/essence-bloom-baby.jpg',colors:[]},
   // Eyes — Mascara & Eyeliner
-  {id:6,brand:'bourjois',name:'Twist Mascara',desc:'Twist Up · Balm Booster · Twist Extrême Fiber',price:15.5,img:'products/bourjois-mascara.jpg',colors:[{name:'Twist Up Long-lasting',hex:'#8B0000'},{name:'Twist Black (Balm Booster)',hex:'#7A2E5C'},{name:'Twist Extrême Fiber',hex:'#C68642'}]},
-  {id:11,brand:'maybelline',name:'Sky High Mascara',desc:'Volume & length · Black',price:13,img:'products/maybelline-sky-high.jpg',colors:[]},
-  {id:9,brand:'maxfactor',name:'2000 Calorie Mascara',desc:'Full volume · Waterproof option',price:6,img:'products/max-factor-mascara.jpg',colors:[{name:'Gold (Volume)',hex:'#C9A96E'},{name:'Blue (Waterproof)',hex:'#4682B4'}]},
-  {id:42,brand:'essence',name:'Lash Princess Mascara',desc:'False lash effect · Curl & volume · Sculpted volume',price:3,img:'products/essence-lash-princess.jpg',colors:[{name:'False Lash Effect (Green)',hex:'#B8E0B0'},{name:'Curl & Volume (Pink) — 3.30 JD',hex:'#F48FB1'},{name:'Sculpted Volume (Purple)',hex:'#B39DDB'}]},
-  {id:38,brand:'essence',name:'I ❤ Extreme Mascara',desc:'Crazy volume · Volume mascara',price:3,img:'products/essence-extreme-mascara.jpg',colors:[{name:'Crazy Volume (Pink)',hex:'#E91E63'},{name:'Volume Mascara (Black)',hex:'#000000'}]},
-  {id:37,brand:'essence',name:'Dip Eyeliner Waterproof',desc:'24h long-lasting · 3ml',price:3,img:'products/essence-dip-eyeliner.jpg',colors:[]},
+  {id:6,nameAr:'ماسكارا تويست',descAr:'تويست أب · بالم بوستر · تويست إكستريم فايبر',brand:'bourjois',name:'Twist Mascara',desc:'Twist Up · Balm Booster · Twist Extrême Fiber',price:15.5,img:'products/bourjois-mascara.jpg',colors:[{name:'Twist Up Long-lasting',hex:'#8B0000'},{name:'Twist Black (Balm Booster)',hex:'#7A2E5C'},{name:'Twist Extrême Fiber',hex:'#C68642'}]},
+  {id:11,nameAr:'ماسكارا سكاي هاي',descAr:'كثافة وطول · أسود',brand:'maybelline',name:'Sky High Mascara',desc:'Volume & length · Black',price:13,img:'products/maybelline-sky-high.jpg',colors:[]},
+  {id:9,nameAr:'ماسكارا 2000 كالوري',descAr:'كثافة عالية · متوفر ضد الماء',brand:'maxfactor',name:'2000 Calorie Mascara',desc:'Full volume · Waterproof option',price:6,img:'products/max-factor-mascara.jpg',colors:[{name:'Gold (Volume)',hex:'#C9A96E'},{name:'Blue (Waterproof)',hex:'#4682B4'}]},
+  {id:42,nameAr:'ماسكارا لاش برنسس',descAr:'تأثير الرموش الصناعية · تكثيف وتجعيد · ماسكارا حجم',brand:'essence',name:'Lash Princess Mascara',desc:'False lash effect · Curl & volume · Sculpted volume',price:3,img:'products/essence-lash-princess.jpg',colors:[{name:'False Lash Effect (Green)',hex:'#B8E0B0'},{name:'Curl & Volume (Pink) — 3.30 JD',hex:'#F48FB1'},{name:'Sculpted Volume (Purple)',hex:'#B39DDB'}]},
+  {id:38,nameAr:'ماسكارا آي لاف إكستريم',descAr:'كثافة جنونية · ماسكارا للحجم',brand:'essence',name:'I ❤ Extreme Mascara',desc:'Crazy volume · Volume mascara',price:3,img:'products/essence-extreme-mascara.jpg',colors:[{name:'Crazy Volume (Pink)',hex:'#E91E63'},{name:'Volume Mascara (Black)',hex:'#000000'}]},
+  {id:37,nameAr:'آيلاينر ديب',descAr:'ضد الماء · يدوم 24 ساعة · 3مل',brand:'essence',name:'Dip Eyeliner Waterproof',desc:'24h long-lasting · 3ml',price:3,img:'products/essence-dip-eyeliner.jpg',colors:[]},
   // Brows
-  {id:44,brand:'bourjois',name:'Brow Fiber Oh Oui!',desc:'Brow mascara · Fiber-enriched',price:9,img:'products/bourjois-brow-fiber.jpg',colors:[{name:'002 Brown',hex:'#8B6F47'},{name:'003 Chestnut',hex:'#5C3A21'}]},
-  {id:36,brand:'essence',name:'Fix It Like A Boss Brow Gel',desc:'Transparent brow gel · Extra strong',price:3,img:'products/essence-fix-brow.jpg',colors:[]},
+  {id:44,nameAr:'جل الحواجب براو فايبر',descAr:'ماسكارا حواجب · بألياف',brand:'bourjois',name:'Brow Fiber Oh Oui!',desc:'Brow mascara · Fiber-enriched',price:9,img:'products/bourjois-brow-fiber.jpg',colors:[{name:'002 Brown',hex:'#8B6F47'},{name:'003 Chestnut',hex:'#5C3A21'}]},
+  {id:36,nameAr:'جل تثبيت الحواجب فيكس إت لايك آ بوس',descAr:'جل حواجب شفاف · قوة إضافية',brand:'essence',name:'Fix It Like A Boss Brow Gel',desc:'Transparent brow gel · Extra strong',price:3,img:'products/essence-fix-brow.jpg',colors:[]},
   // Lips
-  {id:5,brand:'bourjois',name:'Rouge Velvet Lipstick',desc:'Velvet finish · Long-lasting',price:14.5,img:'products/bourjois-rouge-velvet.jpg',colors:[{name:'No 05 Rouge',hex:'#8B1A1A'},{name:'No 24',hex:'#A0522D'},{name:'No 33 Rose',hex:'#C48A8A'},{name:'No 19 Place des Roses',hex:'#E8A0A0'}]},
-  {id:7,brand:'maxfactor',name:'Lipfinity Velvet Matte',desc:'24H wear · Multiple shades',price:16,img:'products/max-factor-lipfinity.jpg',colors:[{name:'20 Coco Crème',hex:'#B8856A'},{name:'30 Cool Coral',hex:'#CD5C5C'}]},
-  {id:40,brand:'essence',name:'8h Matte Liquid Lipstick',desc:'8h wear · Assorted shades',price:3.3,img:'products/essence-8h-matte.jpg',colors:[]},
-  {id:41,brand:'essence',name:'Electric Glow Colour Changing Lipstick',desc:'Adapts to your pH · Vegan · Cruelty-free',price:3.5,img:'products/essence-electric-glow.jpg',colors:[]},
-  {id:34,brand:'essence',name:'Tinted Kiss Hydrating Lip Tint',desc:'Long-lasting finish · 4ml',price:3,img:'products/essence-tinted-kiss.jpg',colors:[{name:'106 Redtastic',hex:'#C8383A'},{name:'107 Raspberry Charm',hex:'#9E3B4E'}]},
-  {id:28,brand:'essence',name:'Extreme Shine Volume Lip Gloss',desc:'01 Crystal Clear · Extreme shine volume',price:2.5,img:'products/essence-extreme-lipgloss.jpg',colors:[]},
-  {id:45,brand:'essence',name:'What The Fake! Plumping Lip Filler',desc:'With Vitamin E · 4.2ml',price:3.5,img:'products/essence-what-the-fake.jpg',colors:[{name:'Pink (Hyaluronic Acid)',hex:'#F8B4C4'},{name:'Red (Chili Extract)',hex:'#E63946'},{name:'Blue (Icy Effect / Peppermint)',hex:'#87CEEB'}]},
-  {id:14,brand:'essence',name:'Heart Core Lip Balm',desc:'Fruity · 10% sweet almond oil',price:1.8,img:'products/essence-heart-core.jpg',colors:[]},
+  {id:5,nameAr:'أحمر شفاه روج فيلفت',descAr:'لمسة مخملية · طويل الأمد',brand:'bourjois',name:'Rouge Velvet Lipstick',desc:'Velvet finish · Long-lasting',price:14.5,img:'products/bourjois-rouge-velvet.jpg',colors:[{name:'No 05 Rouge',hex:'#8B1A1A'},{name:'No 24',hex:'#A0522D'},{name:'No 33 Rose',hex:'#C48A8A'},{name:'No 19 Place des Roses',hex:'#E8A0A0'}]},
+  {id:7,nameAr:'ليبفينيتي فيلفت مات',descAr:'يدوم 24 ساعة · درجات متعددة',brand:'maxfactor',name:'Lipfinity Velvet Matte',desc:'24H wear · Multiple shades',price:16,img:'products/max-factor-lipfinity.jpg',colors:[{name:'20 Coco Crème',hex:'#B8856A'},{name:'30 Cool Coral',hex:'#CD5C5C'}]},
+  {id:40,nameAr:'أحمر شفاه سائل مات 8 ساعات',descAr:'يدوم 8 ساعات · درجات متعددة',brand:'essence',name:'8h Matte Liquid Lipstick',desc:'8h wear · Assorted shades',price:3.3,img:'products/essence-8h-matte.jpg',colors:[]},
+  {id:41,nameAr:'أحمر شفاه إلكتريك جلو المتغير اللون',descAr:'يتكيف مع حموضة بشرتك · نباتي · خالٍ من القسوة',brand:'essence',name:'Electric Glow Colour Changing Lipstick',desc:'Adapts to your pH · Vegan · Cruelty-free',price:3.5,img:'products/essence-electric-glow.jpg',colors:[]},
+  {id:34,nameAr:'تينت شفاه تينتد كيس',descAr:'لمسة نهائية طويلة الأمد · 4مل',brand:'essence',name:'Tinted Kiss Hydrating Lip Tint',desc:'Long-lasting finish · 4ml',price:3,img:'products/essence-tinted-kiss.jpg',colors:[{name:'106 Redtastic',hex:'#C8383A'},{name:'107 Raspberry Charm',hex:'#9E3B4E'}]},
+  {id:28,nameAr:'جلوس شفاه إكستريم شاين',descAr:'01 كريستال كلير · لمعان قوي',brand:'essence',name:'Extreme Shine Volume Lip Gloss',desc:'01 Crystal Clear · Extreme shine volume',price:2.5,img:'products/essence-extreme-lipgloss.jpg',colors:[]},
+  {id:45,nameAr:'جل نافخ للشفاه واتس ذا فيك',descAr:'مع فيتامين E · 4.2مل',brand:'essence',name:'What The Fake! Plumping Lip Filler',desc:'With Vitamin E · 4.2ml',price:3.5,img:'products/essence-what-the-fake.jpg',colors:[{name:'Pink (Hyaluronic Acid)',hex:'#F8B4C4'},{name:'Red (Chili Extract)',hex:'#E63946'},{name:'Blue (Icy Effect / Peppermint)',hex:'#87CEEB'}]},
+  {id:14,nameAr:'بلسم شفاه هارت كور',descAr:'بنكهات الفاكهة · بزيت اللوز الحلو 10٪',brand:'essence',name:'Heart Core Lip Balm',desc:'Fruity · 10% sweet almond oil',price:1.8,img:'products/essence-heart-core.jpg',colors:[]},
 
   // ===== SKINCARE & PREP =====
-  {id:43,brand:'bourjois',name:'Healthy Mix Hydrating Primer',desc:'Clean & vegan · Vitamins C+B5+E · Instant radiance',price:15,img:'products/bourjois-hydrating-primer.jpg',colors:[]},
-  {id:31,brand:'essence',name:'Hydro Hero Primer',desc:'48h hydration · Hyaluronic acid & cucumber',price:3.8,img:'products/essence-hydro-primer.jpg',colors:[]},
-  {id:29,brand:'essence',name:'Hello Good Stuff! Primer Serum',desc:'Hydrate & Plump · Blueberry & Squalane · 30ml',price:5,img:'products/essence-primer-serum.jpg',colors:[]},
-  {id:27,brand:'essence',name:'Hello Good Stuff! Pore Minimizing Serum',desc:'With pomegranate & niacinamide · 30ml',price:5,img:'products/essence-pore-serum.jpg',colors:[]},
-  {id:30,brand:'essence',name:'Magic All In One Face Cream',desc:'Healthy look in seconds · Sheer coverage · Blurring',price:4,img:'products/essence-magic-cream.jpg',colors:[]},
-  {id:22,brand:'garnier',name:'PureActive Micellar Water',desc:'Cleanses + Purifies · Combination/oily skin · 400ml',price:5.5,img:'products/garnier-pure-active.jpg',colors:[]},
-  {id:23,brand:'garnier',name:'Vitamin C Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Radiance · Dull skin',price:5.5,img:'products/garnier-vitamin-c.jpg',colors:[]},
-  {id:24,brand:'garnier',name:'Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Soothes · Sensitive skin',price:5.5,img:'products/garnier-sensitive.jpg',colors:[]},
-  {id:25,brand:'bioderma',name:'Sébium H2O 250ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:12,img:'products/bioderma-sebium-250.jpg',colors:[]},
-  {id:26,brand:'bioderma',name:'Sébium H2O 500ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:16,img:'products/bioderma-sebium-500.jpg',colors:[]},
-
-  // ===== NAIL CARE =====
-  {id:17,brand:'pastel',name:'Quick Dry Solution',desc:'Shine · Protects manicure',price:3.5,img:'products/pastel-quick-dry.jpg',colors:[]},
-  {id:18,brand:'pastel',name:'Nail Care Gel',desc:'With calcium · Strengthening',price:3.5,img:'products/pastel-nail-care-gel.jpg',colors:[]},
-  {id:19,brand:'pastel',name:'Pastel Nail Polish',desc:'Classic collection · 2.00 JD each',price:2,img:'products/pastel-classic-red.jpg',colors:[{name:'Red No.10',hex:'#B22222',img:'products/pastel-classic-red.jpg'},{name:'Red No.28',hex:'#DC143C',img:'products/pastel-bright-red.jpg'},{name:'Wild Red No.33',hex:'#8B0000',img:'products/pastel-dark-red.jpg'},{name:'Cardinal Red No.37',hex:'#722F37',img:'products/pastel-wine-red.jpg'},{name:'Pink No.08',hex:'#DB7093',img:'products/pastel-light-pink.jpg'},{name:'Rose Gem No.310',hex:'#B4838A',img:'products/pastel-mauve.jpg'},{name:'Blush Pink No.266',hex:'#D4919A',img:'products/pastel-hot-pink.jpg'},{name:'Blue No.11',hex:'#1937C7',img:'products/pastel-cobalt.jpg'},{name:'Grey Blue No.13',hex:'#6B8BA4',img:'products/pastel-steel-blue.jpg'},{name:'No.229',hex:'#1E3A8A',img:'products/pastel-royal-blue.jpg'},{name:'No.269',hex:'#4A5568',img:'products/pastel-navy.jpg'},{name:'Winter Garden No.246',hex:'#8BAFC4',img:'products/pastel-baby-blue.jpg'},{name:'Grey No.312',hex:'#9DA5B0',img:'products/pastel-gray.jpg'},{name:'Dark Black No.38',hex:'#1A1A1A',img:'products/pastel-black.jpg'},{name:'Dark Purple No.44',hex:'#3E2723',img:'products/pastel-chocolate.jpg'},{name:'Clear White No.01',hex:'#F5F5F5'},{name:'Lemonade No.295',hex:'#E8C820',img:'products/pastel-yellow-hand.jpg'},{name:'Best Selling No.293',hex:'#C8B8A0',img:'products/pastel-shimmer-hand.jpg'},{name:'Glittery No.249',hex:'#C0C0C0',img:'products/pastel-silver-hand.jpg'}]},
-  {id:20,brand:'pastel',name:'Pastel Nude Polish',desc:'Nude collection · 2.00 JD each',price:2,img:'products/nude-beige-hand.jpg',colors:[{name:'Dreamer No.769',hex:'#D4A0A0',img:'products/pastel-nude-hand.jpg'},{name:'Kind No.762',hex:'#E8C8D0',img:'products/nude-light-pink-hand.jpg'},{name:'Beige No.755',hex:'#C4A882',img:'products/nude-caramel-bottle.jpg'},{name:'Bride Nude No.751',hex:'#C8B8A0',img:'products/nude-sand-bottle.jpg'},{name:'Milkshake No.765',hex:'#B8A090',img:'products/nude-mauve-bottle.jpg'},{name:'Buff No.759',hex:'#A89888',img:'products/nude-taupe-hand.jpg'},{name:'Princess No.756',hex:'#E0C8C0',img:'products/nude-peach-hand.jpg'}]},
-  {id:21,brand:'pastel',name:'Pastel Pure Polish',desc:'Pure collection · 2.00 JD each',price:2,img:'products/pure-shimmer-hand.jpg',colors:[{name:'Pure No.607',hex:'#E8D0C0',img:'products/pure-beige-bottle.jpg'},{name:'Shimmering Fairy No.602',hex:'#C8B0A8',img:'products/pure-matte-hand.jpg'},{name:'Pure No.621',hex:'#7B4060',img:'products/pure-plum-hand.jpg'},{name:'Pure Nude No.616',hex:'#D8C0B8',img:'products/pure-shimmer-hand.jpg'}]},
+  {id:43,nameAr:'برايمر مرطب هيلثي ميكس',descAr:'نظيف ونباتي · فيتامينات C+B5+E · إشراقة فورية',brand:'bourjois',name:'Healthy Mix Hydrating Primer',desc:'Clean & vegan · Vitamins C+B5+E · Instant radiance',price:15,img:'products/bourjois-hydrating-primer.jpg',colors:[]},
+  {id:31,nameAr:'برايمر هايدرو هيرو',descAr:'ترطيب 48 ساعة · حمض الهيالورونيك وخيار',brand:'essence',name:'Hydro Hero Primer',desc:'48h hydration · Hyaluronic acid & cucumber',price:3.8,img:'products/essence-hydro-primer.jpg',colors:[]},
+  {id:29,nameAr:'سيروم برايمر هالو جود ستاف',descAr:'ترطيب ونفخ · بلوبيري وسكوالان · 30مل',brand:'essence',name:'Hello Good Stuff! Primer Serum',desc:'Hydrate & Plump · Blueberry & Squalane · 30ml',price:5,img:'products/essence-primer-serum.jpg',colors:[]},
+  {id:27,nameAr:'سيروم تصغير المسام هالو جود ستاف',descAr:'برمان ونياسيناميد · 30مل',brand:'essence',name:'Hello Good Stuff! Pore Minimizing Serum',desc:'With pomegranate & niacinamide · 30ml',price:5,img:'products/essence-pore-serum.jpg',colors:[]},
+  {id:30,nameAr:'كريم الوجه ماجيك أول إن ون',descAr:'إطلالة صحية بثوانٍ · تغطية شفافة · تنعيم',brand:'essence',name:'Magic All In One Face Cream',desc:'Healthy look in seconds · Sheer coverage · Blurring',price:4,img:'products/essence-magic-cream.jpg',colors:[]},
+  {id:22,nameAr:'ماء ميسيلار بيور أكتيف من غارنييه',descAr:'ينظف + ينقي · للبشرة المختلطة/الدهنية · 400مل',brand:'garnier',name:'PureActive Micellar Water',desc:'Cleanses + Purifies · Combination/oily skin · 400ml',price:5.5,img:'products/garnier-pure-active.jpg',colors:[]},
+  {id:23,nameAr:'ماء ميسيلار فيتامين سي من غارنييه',descAr:'يزيل المكياج + ينظف + يعيد إشراقة البشرة · للبشرة الباهتة',brand:'garnier',name:'Vitamin C Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Radiance · Dull skin',price:5.5,img:'products/garnier-vitamin-c.jpg',colors:[]},
+  {id:24,nameAr:'ماء ميسيلار من غارنييه',descAr:'يزيل المكياج + ينظف + يلطف · للبشرة الحساسة',brand:'garnier',name:'Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Soothes · Sensitive skin',price:5.5,img:'products/garnier-sensitive.jpg',colors:[]},
+  {id:25,nameAr:'بيوديرما سيبيوم H2O 250مل',descAr:'ماء ميسيلار منظف · للبشرة المختلطة/الدهنية',brand:'bioderma',name:'Sébium H2O 250ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:12,img:'products/bioderma-sebium-250.jpg',colors:[]},
+  {id:26,nameAr:'بيوديرما سيبيوم H2O 500مل',descAr:'ماء ميسيلار منظف · للبشرة المختلطة/الدهنية',brand:'bioderma',name:'Sébium H2O 500ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:16,img:'products/bioderma-sebium-500.jpg',colors:[]},
 ];
 
 // === RENDER PRODUCTS ===
+let currentLang = localStorage.getItem('celestiaLang') || 'en';
+function tProd(p, field){
+  if(currentLang==='ar' && p[field+'Ar']) return p[field+'Ar'];
+  return p[field];
+}
 function renderProducts(){
   const grid=document.getElementById('prodGrid');
   grid.innerHTML=products.map(p=>{
     const colorsHtml=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
+    const btnLabel = currentLang==='ar' ? '🛒 أضف إلى السلة' : '🛒 Add to Cart';
     return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}">
       <div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
       <div class="prod-brand">${p.brand==='maxfactor'?'Max Factor':p.brand.charAt(0).toUpperCase()+p.brand.slice(1)}</div>
-      <div class="prod-name">${p.name}</div>
-      <div class="prod-desc">${p.desc}</div>
+      <div class="prod-name">${tProd(p,'name')}</div>
+      <div class="prod-desc">${tProd(p,'desc')}</div>
       <div class="prod-price">${p.price.toFixed(2)} JOD</div>
       ${colorsHtml}
-      <button class="add-cart" onclick="addToCart(${p.id})">🛒 Add to Cart</button>
+      <button class="add-cart" onclick="addToCart(${p.id})">${btnLabel}</button>
     </div>`;
   }).join('');
 }
@@ -727,14 +740,38 @@ function openCollPage(cat,title,desc){
   } else {
     grid.innerHTML=filtered.map(p=>{
       const ch=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
-      return `<div class="prod-card" data-brand="${p.brand}"><div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div><div class="prod-brand">${p.brand}</div><div class="prod-name">${p.name}</div><div class="prod-desc">${p.desc}</div>${ch}<div class="prod-price">${p.price.toFixed(2)} JOD</div><button class="add-cart" onclick="addToCart(${p.id})">Add to Cart</button></div>`;
+      const btnLabel = currentLang==='ar' ? 'أضف إلى السلة' : 'Add to Cart';
+      return `<div class="prod-card" data-brand="${p.brand}"><div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div><div class="prod-brand">${p.brand}</div><div class="prod-name">${tProd(p,'name')}</div><div class="prod-desc">${tProd(p,'desc')}</div>${ch}<div class="prod-price">${p.price.toFixed(2)} JOD</div><button class="add-cart" onclick="addToCart(${p.id})">${btnLabel}</button></div>`;
     }).join('');
   }
   document.getElementById('collPage').classList.add('open');
   document.body.style.overflow='hidden';
   document.getElementById('collPage').scrollTop=0;
+  // Push state so browser back button closes the modal
+  if(!history.state||history.state.modal!=='collPage'){
+    history.pushState({modal:'collPage'},'','#collection');
+  }
 }
-function closeCollPage(){document.getElementById('collPage').classList.remove('open');document.body.style.overflow=''}
+function closeCollPage(){
+  document.getElementById('collPage').classList.remove('open');
+  document.body.style.overflow='';
+  if(history.state&&history.state.modal==='collPage'){history.back()}
+}
+// Listen for browser back button
+window.addEventListener('popstate',function(e){
+  const cp=document.getElementById('collPage');
+  if(cp&&cp.classList.contains('open')){
+    cp.classList.remove('open');
+    document.body.style.overflow='';
+  }
+});
+// ESC key closes modal
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    const cp=document.getElementById('collPage');
+    if(cp&&cp.classList.contains('open'))closeCollPage();
+  }
+});
 
 function selectColor(e,pid){
   e.stopPropagation();
@@ -979,7 +1016,100 @@ async function handleResetPw(){
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
 function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
 function closeNav(){document.getElementById('navLinks').classList.remove('open')}
-function toggleLang(btn){if(btn.textContent==='العربية'){btn.textContent='English';document.documentElement.dir='rtl';document.documentElement.lang='ar'}else{btn.textContent='العربية';document.documentElement.dir='ltr';document.documentElement.lang='en'}}
+// === LANGUAGE / TRANSLATION SYSTEM ===
+const T = {
+  ar: {
+    // Nav
+    'Home':'الرئيسية','Shop':'التسوق','Collections':'المجموعات','About':'من نحن','Contact':'اتصل بنا','Reviews':'التقييمات','FAQ':'الأسئلة الشائعة','Brands':'الماركات',
+    // Hero
+    'Where Style':'حيث يلتقي الأسلوب','Meets ':'مع ','Sparkle':'البريق','Where style meets sparkle. An accessories boutique in Amman, Jordan.':'حيث يلتقي الأسلوب بالبريق. متجر إكسسوارات في عمّان، الأردن.',
+    'Shop Now':'تسوّق الآن','Our Story':'قصتنا','Scroll':'مرّر','to explore':'للاستكشاف','Available Now':'متوفر الآن','Coming Soon':'قريباً',
+    // Sections
+    'Our Collections':'مجموعاتنا','Our Products':'منتجاتنا','All Products':'كل المنتجات','All':'الكل','New Arrivals':'الوصول الجديد',
+    'Accessories':'إكسسوارات','Bags':'حقائب','Best Sellers':'الأكثر مبيعاً','Unique Pieces':'قطع فريدة','Premium cosmetics':'مستحضرات تجميل فاخرة',
+    'Premium cosmetics and beauty essentials. Add to cart and checkout with delivery.':'مستحضرات تجميل وضروريات جمال فاخرة. أضف إلى السلة وتابع الشراء مع التوصيل.',
+    'Jewelry, hair & more':'مجوهرات، إكسسوارات شعر والمزيد','Clutches, totes & evening bags':'كلاتشات، حقائب ومقتنيات المساء',
+    // Testimonials & Reviews
+    'Testimonials':'شهادات','What Our Clients Say':'ماذا يقول عملاؤنا','Rating':'التقييم','Excellent':'ممتاز','Based on 27 Google reviews':'استناداً إلى 27 تقييم على Google','Google Review':'تقييم Google',
+    // About
+    'Founder & Owner':'المؤسسة والمالكة','Our Story':'قصتنا',
+    // Contact
+    'Contact':'اتصل بنا','Visit Our Boutique':'زوروا متجرنا','Visit our Amman boutique':'زوروا متجرنا في عمّان','Address':'العنوان','Hours':'ساعات العمل','Phone':'الهاتف','Instagram':'انستغرام','Email':'البريد الإلكتروني','WhatsApp':'واتساب',
+    'Chat with Us':'تحدث معنا','Send a Message':'أرسل رسالة','Send Message':'إرسال الرسالة','Message':'الرسالة','Full Name':'الاسم الكامل','Name':'الاسم',
+    'Amman, Jordan':'عمّان، الأردن','Friday: Closed':'الجمعة: مغلق','Find Us on Google Maps':'اعثر علينا على خرائط Google','Connect':'تواصل',
+    // FAQ
+    'Common Questions':'الأسئلة الشائعة','How to Shop With Us':'كيف تتسوق معنا','How do I pay?':'كيف أدفع؟','Do you accept returns or exchanges?':'هل تقبلون الإرجاع أو الاستبدال؟',
+    'Do you deliver outside Amman?':'هل توصلون خارج عمّان؟','Are all products authentic?':'هل جميع المنتجات أصلية؟','Are your nail polishes halal certified?':'هل طلاءات أظافركم معتمدة حلال؟',
+    'How long does delivery take?':'كم يستغرق التوصيل؟','What are your opening hours?':'ما هي ساعات عملكم؟','Can I order via WhatsApp?':'هل يمكنني الطلب عبر الواتساب؟',
+    'Yes, we deliver across Jordan. Reach out via WhatsApp for delivery details.':'نعم، نوصل إلى جميع أنحاء الأردن. تواصل معنا عبر الواتساب لتفاصيل التوصيل.',
+    'Message us to browse and order':'راسلنا للاستعراض والطلب','Order ahead, collect at your convenience':'اطلب مسبقاً واستلم في الوقت المناسب لك',
+    // Cart
+    'Your Cart':'سلتك','Your cart is empty':'سلتك فارغة','Subtotal':'المجموع الفرعي','Total':'المجموع','Proceed to Checkout':'المتابعة للدفع','Remove':'إزالة','Cart':'السلة',
+    // Checkout
+    'Checkout':'الدفع','Delivery Details':'تفاصيل التوصيل','Delivery Area':'منطقة التوصيل','Amman':'عمّان','Outside Amman':'خارج عمّان','Full Address':'العنوان الكامل',
+    'Payment Method':'طريقة الدفع','Cash on Delivery':'الدفع عند الاستلام','PayPal / Card':'PayPal / بطاقة','Pay when your order arrives':'ادفع عند وصول الطلب',
+    'Pay securely with PayPal, Visa, or Mastercard':'ادفع بأمان عبر PayPal أو Visa أو Mastercard','Delivery fees will be confirmed after order':'سيتم تأكيد رسوم التوصيل بعد الطلب',
+    'Notes (optional)':'ملاحظات (اختياري)','Delivery':'التوصيل',
+    // Auth
+    'Login':'تسجيل الدخول','Sign In':'تسجيل الدخول','Sign in':'تسجيل الدخول','Welcome Back':'أهلاً بعودتك','Welcome':'أهلاً بك','Create Account':'إنشاء حساب','Password':'كلمة المرور',
+    'Forgot Password':'نسيت كلمة المرور','Forgot password?':'نسيت كلمة المرور؟','Send Reset Link':'إرسال رابط إعادة التعيين','Reset':'إعادة التعيين',
+    'Already have an account? ':'هل لديك حساب؟ ','Create one':'أنشئ حساباً',
+    // Buttons
+    'Add to Cart':'أضف إلى السلة',
+    // Footer
+    'Company':'الشركة','Services':'الخدمات','We deliver across Amman and Jordan':'نوصل إلى جميع أنحاء عمّان والأردن',
+    'Celestia Accessories':'سيليستيا إكسسوارات'
+  }
+};
+
+// Snapshot original English text on load
+function snapshotOriginalText(){
+  document.querySelectorAll('body *').forEach(el=>{
+    if(el.childNodes.length===1&&el.childNodes[0].nodeType===3){
+      const txt=el.textContent.trim();
+      if(txt&&!el.dataset.origEn&&T.ar[txt]){
+        el.dataset.origEn=txt;
+      }
+    }
+  });
+}
+
+function applyLang(lang){
+  currentLang=lang;
+  localStorage.setItem('celestiaLang',lang);
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.documentElement.lang=lang;
+  // Swap text on translatable elements
+  document.querySelectorAll('[data-orig-en]').forEach(el=>{
+    const orig=el.dataset.origEn;
+    if(lang==='ar'&&T.ar[orig]) el.textContent=T.ar[orig];
+    else el.textContent=orig;
+  });
+  // Swap placeholders
+  document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el=>{
+    if(!el.dataset.origPh) el.dataset.origPh=el.placeholder;
+    const orig=el.dataset.origPh;
+    if(lang==='ar'&&T.ar[orig]) el.placeholder=T.ar[orig];
+    else el.placeholder=orig;
+  });
+  // Re-render products with translated fields
+  renderProducts();
+  // Update the lang toggle button label
+  document.querySelectorAll('.nav-lang').forEach(b=>{
+    b.textContent = lang==='ar' ? 'English' : 'العربية';
+  });
+}
+
+function toggleLang(btn){
+  const newLang = currentLang==='ar' ? 'en' : 'ar';
+  applyLang(newLang);
+}
+
+// Init on load
+window.addEventListener('DOMContentLoaded',function(){
+  snapshotOriginalText();
+  if(currentLang==='ar') applyLang('ar');
+});
 function openLogin(){document.getElementById('loginModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeLogin(){document.getElementById('loginModal').classList.remove('open');document.body.style.overflow=''}
 document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this)closeLogin()})
