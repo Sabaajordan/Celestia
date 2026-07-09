@@ -726,7 +726,7 @@ const products = [
   {id:34,nameAr:'تينت شفاه تينتد كيس',descAr:'لمسة نهائية طويلة الأمد · 4مل',brand:'essence',name:'Tinted Kiss Hydrating Lip Tint',desc:'Long-lasting finish · 4ml',price:3,img:'products/essence-tinted-kiss.jpg',colors:[{name:'106 Redtastic',hex:'#C8383A'},{name:'107 Raspberry Charm',hex:'#9E3B4E'}]},
   {id:28,nameAr:'جلوس شفاه إكستريم شاين',descAr:'01 كريستال كلير · لمعان قوي',brand:'essence',name:'Extreme Shine Volume Lip Gloss',desc:'01 Crystal Clear · Extreme shine volume',price:2.5,img:'products/essence-extreme-lipgloss.jpg',colors:[]},
   {id:45,nameAr:'جل نافخ للشفاه واتس ذا فيك',descAr:'مع فيتامين E · 4.2مل',brand:'essence',name:'What The Fake! Plumping Lip Filler',desc:'With Vitamin E · 4.2ml',price:3.5,img:'products/essence-what-the-fake.jpg',colors:[{name:'Pink (Hyaluronic Acid)',hex:'#F8B4C4'},{name:'Red (Chili Extract)',hex:'#E63946'},{name:'Blue (Icy Effect / Peppermint)',hex:'#87CEEB'}]},
-  {id:14,nameAr:'بلسم شفاه هارت كور',descAr:'بنكهات الفاكهة · بزيت اللوز الحلو 10٪',brand:'essence',name:'Heart Core Lip Balm',desc:'Fruity · 10% sweet almond oil',price:1.8,img:'products/essence-heart-core.jpg',colors:[]},
+  {id:14,nameAr:'بلسم شفاه هارت كور',descAr:'بنكهات الفاكهة · بزيت اللوز الحلو 10٪',brand:'essence',name:'Heart Core Lip Balm',desc:'Fruity · 10% sweet almond oil',price:1.8,img:'products/essence-heart-core.jpg',extraImgs:['products/essence-heart-core-strawberry.jpg'],colors:[]},
 
   // ===== SKINCARE & PREP =====
   {id:43,nameAr:'برايمر مرطب هيلثي ميكس',descAr:'نظيف ونباتي · فيتامينات C+B5+E · إشراقة فورية',brand:'bourjois',name:'Healthy Mix Hydrating Primer',desc:'Clean & vegan · Vitamins C+B5+E · Instant radiance',price:15,img:'products/bourjois-hydrating-primer.jpg',colors:[]},
@@ -848,6 +848,9 @@ function renderProdModal(){
   // Build thumbnail images list: only include colors that have img, otherwise just the default photo
   const thumbImgs = [];
   thumbImgs.push({src:p.img, label:tProd(p,'name'), colorIdx:-1});
+  (p.extraImgs||[]).forEach(src=>{
+    thumbImgs.push({src, label:tProd(p,'name'), colorIdx:-1});
+  });
   p.colors.forEach((c,i)=>{
     if(c.img && c.img !== p.img){
       thumbImgs.push({src:c.img, label:c.name, colorIdx:i});
@@ -856,8 +859,8 @@ function renderProdModal(){
   const showThumbs = thumbImgs.length > 1;
   const thumbsHtml = showThumbs
     ? `<div class="prod-modal-thumbs">${thumbImgs.map((t,i)=>{
-        const isActive = (modalState.selectedColorIdx===-1 && t.colorIdx===-1) || (modalState.selectedColorIdx===t.colorIdx);
-        return `<div class="prod-modal-thumb${isActive?' active':''}" onclick="selectModalThumb(${t.colorIdx})"><img src="${t.src}" alt="${t.label}"></div>`;
+        const isActive = i===0; // Main image starts active
+        return `<div class="prod-modal-thumb${isActive?' active':''}" onclick="selectModalThumb(event,'${t.src}',${t.colorIdx})"><img src="${t.src}" alt="${t.label}"></div>`;
       }).join('')}</div>`
     : '';
   const galleryClass = showThumbs ? 'prod-modal-gallery' : 'prod-modal-gallery no-thumbs';
@@ -892,14 +895,11 @@ function selectModalColor(idx){
   renderProdModal();
 }
 
-function selectModalThumb(colorIdx){
-  // colorIdx = -1 means default product image
+function selectModalThumb(evt, src, colorIdx){
   if(colorIdx === -1){
-    // Just switch the image, keep whatever color was selected
-    const p=products.find(x=>x.id===modalState.productId);
-    document.getElementById('prodModalMainImg').src = p.img;
+    document.getElementById('prodModalMainImg').src = src;
     document.querySelectorAll('.prod-modal-thumb').forEach(t=>t.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    evt.currentTarget.classList.add('active');
   } else {
     modalState.selectedColorIdx = colorIdx;
     renderProdModal();
