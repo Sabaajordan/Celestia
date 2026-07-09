@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Celestia Accessories — Luxury Bags, Cosmetics & Accessories in Amman, Jordan</title>
-<meta name="description" content="Shop premium cosmetics and luxury accessories at Celestia Accessories in Amman, Jordan. Bourjois, Max Factor, Maybelline, Essence, ArtDeco & Pastel. Delivery available across Jordan.">
-<meta name="keywords" content="Celestia Accessories, Amman, Jordan, cosmetics, makeup, bags, accessories, Bourjois, Max Factor, Maybelline, Essence, ArtDeco, Pastel, nail polish, foundation, mascara, lipstick, luxury accessories Amman">
+<title>Celestia Accessories — Bags, Cosmetics & Accessories in Amman, Jordan</title>
+<meta name="description" content="Shop premium cosmetics and accessories at Celestia Accessories in Amman, Jordan. Bourjois, Max Factor, Maybelline, Essence, ArtDeco & Pastel. Delivery available across Jordan.">
+<meta name="keywords" content="Celestia Accessories, Amman, Jordan, cosmetics, makeup, bags, accessories, Bourjois, Max Factor, Maybelline, Essence, ArtDeco, Pastel, nail polish, foundation, mascara, lipstick">
 <meta name="author" content="Celestia Accessories">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://celestiaaccessoriesjo.netlify.app/">
@@ -14,14 +14,14 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://celestiaaccessoriesjo.netlify.app/">
 <meta property="og:title" content="Celestia Accessories — Where Style Meets Sparkle">
-<meta property="og:description" content="Premium cosmetics and luxury accessories boutique in Amman, Jordan. Shop Bourjois, Max Factor, Maybelline, Essence & Pastel.">
+<meta property="og:description" content="Premium cosmetics and accessories boutique in Amman, Jordan. Shop Bourjois, Max Factor, Maybelline, Essence & Pastel.">
 <meta property="og:image" content="https://celestiaaccessoriesjo.netlify.app/logo.png">
 <meta property="og:locale" content="en_JO">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Celestia Accessories — Where Style Meets Sparkle">
-<meta name="twitter:description" content="Premium cosmetics and luxury accessories boutique in Amman, Jordan.">
+<meta name="twitter:description" content="Premium cosmetics and accessories boutique in Amman, Jordan.">
 <meta name="twitter:image" content="https://celestiaaccessoriesjo.netlify.app/logo.png">
 
 <!-- Structured Data - Local Business -->
@@ -30,7 +30,7 @@
   "@context": "https://schema.org",
   "@type": "Store",
   "name": "Celestia Accessories",
-  "description": "Luxury accessories and premium cosmetics boutique in Amman, Jordan",
+  "description": "Accessories and premium cosmetics boutique in Amman, Jordan",
   "url": "https://celestiaaccessoriesjo.netlify.app",
   "telephone": "+96278607710",
   "address": {
@@ -166,7 +166,41 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 .shop-filter{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;padding:.55rem 1.2rem;border:1px solid rgba(184,149,106,.12);color:var(--muted);transition:all .3s}
 .shop-filter:hover,.shop-filter.active{color:var(--gold);border-color:var(--gold);background:rgba(184,149,106,.06)}
 .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
-.prod-card{transition:transform .4s;display:block}.prod-card:hover{transform:translateY(-4px)}
+.prod-card{transition:transform .4s;display:block;cursor:pointer}.prod-card:hover{transform:translateY(-4px)}
+/* Product Detail Modal — eBay-style layout */
+.prod-modal{position:fixed;inset:0;z-index:500;background:rgba(6,5,4,.88);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.prod-modal.open{display:flex}
+.prod-modal-inner{background:var(--surface);max-width:1000px;width:100%;border-radius:20px;padding:2rem;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid rgba(184,149,106,.15);margin:auto}
+.prod-modal-close{position:absolute;top:1rem;right:1rem;font-size:1.4rem;color:var(--muted);cursor:pointer;padding:.5rem .8rem;background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.2);border-radius:8px;z-index:2}
+.prod-modal-close:hover{color:var(--gold);background:rgba(184,149,106,.15)}
+html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
+.prod-modal-body{display:grid;grid-template-columns:1.1fr 1fr;gap:2rem;align-items:start}
+/* Gallery: thumbs on the far left, main image next to them */
+.prod-modal-gallery{display:grid;grid-template-columns:70px 1fr;gap:.8rem;align-items:start}
+.prod-modal-thumbs{display:flex;flex-direction:column;gap:.5rem;max-height:400px;overflow-y:auto}
+.prod-modal-thumb{width:70px;height:70px;border-radius:8px;overflow:hidden;background:#fff;cursor:pointer;border:2px solid transparent;transition:border-color .2s;flex-shrink:0}
+.prod-modal-thumb.active{border-color:var(--gold)}
+.prod-modal-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.prod-modal-main-img{border-radius:14px;overflow:hidden;background:#fff;aspect-ratio:1/1}
+.prod-modal-main-img img{width:100%;height:100%;object-fit:contain;display:block}
+.prod-modal-info .prod-brand{font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem}
+.prod-modal-info .prod-name{font-family:var(--serif);font-size:1.9rem;line-height:1.15;margin-bottom:.8rem;color:var(--white)}
+.prod-modal-info .prod-desc{color:var(--dim);font-size:.98rem;line-height:1.6;margin-bottom:1.3rem}
+.prod-modal-info .prod-price{font-family:var(--serif);font-size:1.7rem;color:var(--gold);margin-bottom:1.2rem}
+.prod-modal-info .color-label{font-size:.85rem;letter-spacing:.05em;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase}
+.prod-modal-info .selected-color-name{font-size:.95rem;color:var(--white);margin-bottom:.7rem;font-weight:500}
+.prod-modal-info .prod-colors{margin-bottom:1.5rem;gap:.5rem;flex-wrap:wrap}
+.prod-modal-info .color-swatch{width:32px;height:32px}
+.prod-modal-info .add-cart{width:100%;padding:1rem;font-size:1rem;background:var(--gold);color:var(--bg);border-radius:10px;font-weight:500;letter-spacing:.05em;transition:opacity .3s}
+.prod-modal-info .add-cart:hover{opacity:.9}
+@media(max-width:750px){
+  .prod-modal-body{grid-template-columns:1fr;gap:1.2rem}
+  .prod-modal-gallery{grid-template-columns:1fr;gap:.6rem}
+  .prod-modal-thumbs{flex-direction:row;max-height:none;overflow-x:auto;overflow-y:hidden;order:2}
+  .prod-modal-main-img{order:1}
+  .prod-modal-inner{padding:1.5rem 1.2rem;border-radius:14px}
+  .prod-modal-info .prod-name{font-size:1.4rem}
+}
 .prod-card.hidden{display:none}
 .prod-img{aspect-ratio:3/4;overflow:hidden;margin-bottom:.8rem;background:var(--surface2)}
 .prod-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s,opacity .2s}
@@ -397,7 +431,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
   <div class="hero-overlay"></div>
   <div class="hero-line"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">Luxury Accessories · Amman</div>
+    <div class="hero-eyebrow">Accessories · Amman</div>
     <h1>Where Style<br>Meets <span class="gold italic">Sparkle</span></h1>
     <p class="hero-desc">Curated accessories and premium cosmetics, handpicked to add that perfect touch of magic to your look.</p>
     <div class="hero-actions">
@@ -536,6 +570,14 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 </footer>
 
 <!-- COLLECTION PAGE -->
+<!-- PRODUCT DETAIL MODAL -->
+<div class="prod-modal" id="prodModal" onclick="if(event.target===this)closeProdModal()">
+  <div class="prod-modal-inner">
+    <button class="prod-modal-close" onclick="closeProdModal()">✕</button>
+    <div class="prod-modal-body" id="prodModalBody"></div>
+  </div>
+</div>
+
 <div class="coll-page" id="collPage" onclick="if(event.target===this)closeCollPage()">
   <div class="coll-page-inner">
     <div class="coll-page-header">
@@ -712,14 +754,14 @@ function renderProducts(){
   grid.innerHTML=products.map(p=>{
     const colorsHtml=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
     const btnLabel = currentLang==='ar' ? '🛒 أضف إلى السلة' : '🛒 Add to Cart';
-    return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}">
+    return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}" onclick="openProdModal(${p.id})">
       <div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
       <div class="prod-brand">${p.brand==='maxfactor'?'Max Factor':p.brand.charAt(0).toUpperCase()+p.brand.slice(1)}</div>
       <div class="prod-name">${tProd(p,'name')}</div>
       <div class="prod-desc">${tProd(p,'desc')}</div>
       <div class="prod-price">${p.price.toFixed(2)} JOD</div>
       ${colorsHtml}
-      <button class="add-cart" onclick="addToCart(${p.id})">${btnLabel}</button>
+      <button class="add-cart" onclick="event.stopPropagation();addToCart(${p.id})">${btnLabel}</button>
     </div>`;
   }).join('');
 }
@@ -741,7 +783,7 @@ function openCollPage(cat,title,desc){
     grid.innerHTML=filtered.map(p=>{
       const ch=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
       const btnLabel = currentLang==='ar' ? 'أضف إلى السلة' : 'Add to Cart';
-      return `<div class="prod-card" data-brand="${p.brand}"><div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div><div class="prod-brand">${p.brand}</div><div class="prod-name">${tProd(p,'name')}</div><div class="prod-desc">${tProd(p,'desc')}</div>${ch}<div class="prod-price">${p.price.toFixed(2)} JOD</div><button class="add-cart" onclick="addToCart(${p.id})">${btnLabel}</button></div>`;
+      return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}" onclick="openProdModal(${p.id})"><div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div><div class="prod-brand">${p.brand}</div><div class="prod-name">${tProd(p,'name')}</div><div class="prod-desc">${tProd(p,'desc')}</div>${ch}<div class="prod-price">${p.price.toFixed(2)} JOD</div><button class="add-cart" onclick="event.stopPropagation();addToCart(${p.id})">${btnLabel}</button></div>`;
     }).join('');
   }
   document.getElementById('collPage').classList.add('open');
@@ -764,14 +806,125 @@ window.addEventListener('popstate',function(e){
     cp.classList.remove('open');
     document.body.style.overflow='';
   }
+  const pm=document.getElementById('prodModal');
+  if(pm&&pm.classList.contains('open')){
+    pm.classList.remove('open');
+    document.body.style.overflow='';
+  }
 });
 // ESC key closes modal
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
+    const pm=document.getElementById('prodModal');
+    if(pm&&pm.classList.contains('open')){closeProdModal();return}
     const cp=document.getElementById('collPage');
     if(cp&&cp.classList.contains('open'))closeCollPage();
   }
 });
+
+// === PRODUCT DETAIL MODAL ===
+let modalState = {productId:null, selectedColorIdx:0};
+
+function openProdModal(pid){
+  const p=products.find(x=>x.id===pid);
+  if(!p)return;
+  modalState.productId = pid;
+  modalState.selectedColorIdx = 0;
+  renderProdModal();
+  document.getElementById('prodModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  if(!history.state||history.state.modal!=='prodModal'){
+    history.pushState({modal:'prodModal'},'','#product-'+pid);
+  }
+}
+
+function renderProdModal(){
+  const p=products.find(x=>x.id===modalState.productId);
+  if(!p)return;
+  const brandLabel = p.brand==='maxfactor'?'Max Factor':p.brand.charAt(0).toUpperCase()+p.brand.slice(1);
+  // Build gallery: main image is either selected color's img or product's default img
+  const selColor = p.colors[modalState.selectedColorIdx];
+  const mainImg = (selColor && selColor.img) ? selColor.img : p.img;
+  // Build thumbnail images list: only include colors that have img, otherwise just the default photo
+  const thumbImgs = [];
+  thumbImgs.push({src:p.img, label:tProd(p,'name'), colorIdx:-1});
+  p.colors.forEach((c,i)=>{
+    if(c.img && c.img !== p.img){
+      thumbImgs.push({src:c.img, label:c.name, colorIdx:i});
+    }
+  });
+  const showThumbs = thumbImgs.length > 1;
+  const thumbsHtml = showThumbs
+    ? `<div class="prod-modal-thumbs">${thumbImgs.map((t,i)=>{
+        const isActive = (modalState.selectedColorIdx===-1 && t.colorIdx===-1) || (modalState.selectedColorIdx===t.colorIdx);
+        return `<div class="prod-modal-thumb${isActive?' active':''}" onclick="selectModalThumb(${t.colorIdx})"><img src="${t.src}" alt="${t.label}"></div>`;
+      }).join('')}</div>`
+    : '';
+  const galleryClass = showThumbs ? 'prod-modal-gallery' : 'prod-modal-gallery no-thumbs';
+  const galleryStyle = showThumbs ? '' : 'style="grid-template-columns:1fr"';
+
+  // Color swatches
+  const colorsHtml = p.colors.length
+    ? `<div class="color-label">${currentLang==='ar'?'اللون':'Color'}</div>
+       <div class="selected-color-name">${p.colors[modalState.selectedColorIdx]?.name||''}</div>
+       <div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===modalState.selectedColorIdx?' selected':''}" style="background:${c.hex}" onclick="selectModalColor(${i})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`
+    : '';
+
+  const btnLabel = currentLang==='ar' ? '🛒 أضف إلى السلة' : '🛒 Add to Cart';
+
+  document.getElementById('prodModalBody').innerHTML=`
+    <div class="${galleryClass}" ${galleryStyle}>
+      ${thumbsHtml}
+      <div class="prod-modal-main-img"><img id="prodModalMainImg" src="${mainImg}" alt="${tProd(p,'name')}"></div>
+    </div>
+    <div class="prod-modal-info">
+      <div class="prod-brand">${brandLabel}</div>
+      <div class="prod-name">${tProd(p,'name')}</div>
+      <div class="prod-desc">${tProd(p,'desc')}</div>
+      <div class="prod-price">${p.price.toFixed(2)} JOD</div>
+      ${colorsHtml}
+      <button class="add-cart" onclick="addFromModal()">${btnLabel}</button>
+    </div>`;
+}
+
+function selectModalColor(idx){
+  modalState.selectedColorIdx = idx;
+  renderProdModal();
+}
+
+function selectModalThumb(colorIdx){
+  // colorIdx = -1 means default product image
+  if(colorIdx === -1){
+    // Just switch the image, keep whatever color was selected
+    const p=products.find(x=>x.id===modalState.productId);
+    document.getElementById('prodModalMainImg').src = p.img;
+    document.querySelectorAll('.prod-modal-thumb').forEach(t=>t.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  } else {
+    modalState.selectedColorIdx = colorIdx;
+    renderProdModal();
+  }
+}
+
+function addFromModal(){
+  const p=products.find(x=>x.id===modalState.productId);
+  if(!p)return;
+  const color = p.colors[modalState.selectedColorIdx]?.name || '';
+  const img = p.colors[modalState.selectedColorIdx]?.img || p.img;
+  const key = p.id + '-' + color;
+  const existing = cart.find(x=>x.key===key);
+  if(existing){existing.qty++}
+  else{cart.push({key,id:p.id,name:p.name,brand:p.brand,price:p.price,img,color,qty:1})}
+  updateCartUI();
+  showToast(currentLang==='ar'?'أُضيف إلى السلة!':'Added to cart!');
+  closeProdModal();
+}
+
+function closeProdModal(){
+  document.getElementById('prodModal').classList.remove('open');
+  document.body.style.overflow='';
+  if(history.state&&history.state.modal==='prodModal'){history.back()}
+}
 
 function selectColor(e,pid){
   e.stopPropagation();
