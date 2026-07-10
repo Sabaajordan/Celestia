@@ -85,18 +85,18 @@ img{max-width:100%;display:block}
 button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
 
 /* NAV */
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2.5rem;transition:all .5s cubic-bezier(.4,0,.2,1)}
-.nav.scrolled{background:rgba(6,5,4,.92);backdrop-filter:blur(30px) saturate(1.2);padding:1rem 2.5rem}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;transition:all .2s ease;background:rgba(6,5,4,.6);backdrop-filter:blur(20px) saturate(1.2)}
+.nav.scrolled{background:rgba(6,5,4,.98);backdrop-filter:blur(30px) saturate(1.2);padding:.8rem 2.5rem;border-bottom:1px solid rgba(184,149,106,.15)}
 .nav-logo{display:flex;align-items:center}
-.nav-logo img{height:38px;object-fit:contain;transition:height .3s}
+.nav-logo img{height:38px;object-fit:contain;transition:height .2s ease}
 .nav.scrolled .nav-logo img{height:30px}
 .nav-links{display:flex;gap:2.5rem;list-style:none}
-.nav-links a{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);transition:color .3s;font-weight:400}
+.nav-links a{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--white);transition:color .2s ease;font-weight:500}
 .nav-links a:hover{color:var(--gold)}
 .nav-right{display:flex;align-items:center;gap:1.2rem}
-.nav-lang{font-size:.65rem;letter-spacing:.1em;color:var(--muted);padding:.4rem .8rem;border:1px solid rgba(184,149,106,.2);transition:all .3s}
-.nav-lang:hover{color:var(--gold);border-color:var(--gold)}
-.nav-cart{position:relative;font-size:1.1rem;padding:.3rem;transition:color .3s}
+.nav-lang{font-size:.68rem;letter-spacing:.1em;color:var(--white);padding:.45rem .9rem;border:1px solid rgba(184,149,106,.3);transition:all .2s ease;font-weight:500}
+.nav-lang:hover{color:var(--gold);border-color:var(--gold);background:rgba(184,149,106,.08)}
+.nav-cart{position:relative;font-size:1.2rem;padding:.3rem;transition:color .2s ease;color:var(--white)}
 .nav-cart:hover{color:var(--gold)}
 .cart-count{position:absolute;top:-.3rem;right:-.5rem;background:var(--gold);color:var(--black);font-size:.55rem;font-weight:600;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;display:none}
 .cart-count.show{display:flex}
@@ -427,7 +427,7 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
 <!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-bg"></div>
-  <video class="hero-video" autoplay muted playsinline loop id="heroVid"><source src="hero-video-2.mp4" type="video/mp4"></video>
+  <video class="hero-video" autoplay muted playsinline webkit-playsinline preload="auto" id="heroVid"><source src="hero-video-2.mp4" type="video/mp4"></video>
   <div class="hero-overlay"></div>
   <div class="hero-line"></div>
   <div class="hero-content">
@@ -471,7 +471,7 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
     <button class="shop-filter" onclick="filterProducts('garnier',this)">Garnier</button>
     <button class="shop-filter" onclick="filterProducts('bioderma',this)">Bioderma</button>
   </div>
-  <div class="prod-grid reveal" id="prodGrid"></div>
+  <div class="prod-grid" id="prodGrid"></div>
 </section>
 
 <!-- ABOUT -->
@@ -1267,7 +1267,43 @@ function openLogin(){document.getElementById('loginModal').classList.add('open')
 function closeLogin(){document.getElementById('loginModal').classList.remove('open');document.body.style.overflow=''}
 document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this)closeLogin()})
 
-// Hero video: loops (single video)
+// Hero video cycling — mobile-safe
+const heroVid=document.getElementById('heroVid');
+const heroVideos=['hero-video-2.mp4','hero-video.mp4'];
+let currentVid=0;
+
+function playHeroVid(){
+  const promise=heroVid.play();
+  if(promise!==undefined){
+    promise.catch(err=>{
+      // Autoplay blocked or video stalled — try again on any user interaction
+      const retry=()=>{
+        heroVid.play().catch(()=>{});
+        document.removeEventListener('touchstart',retry);
+        document.removeEventListener('click',retry);
+      };
+      document.addEventListener('touchstart',retry,{once:true,passive:true});
+      document.addEventListener('click',retry,{once:true});
+    });
+  }
+}
+
+function switchToNext(){
+  currentVid=(currentVid+1)%heroVideos.length;
+  heroVid.src=heroVideos[currentVid];
+  heroVid.load();
+  playHeroVid();
+}
+
+heroVid.addEventListener('ended',switchToNext);
+heroVid.addEventListener('error',switchToNext); // If a video fails, skip to next
+heroVid.addEventListener('stalled',()=>setTimeout(playHeroVid,500));
+// Try to resume if browser pauses (e.g. tab was backgrounded)
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && heroVid.paused) playHeroVid();
+});
+// Initial kick
+playHeroVid();
 
 // Nav scroll
 const nav=document.getElementById('nav');
