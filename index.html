@@ -427,7 +427,7 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
 <!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-bg"></div>
-  <video class="hero-video" autoplay muted playsinline id="heroVid"><source src="hero-video.mp4" type="video/mp4"></video>
+  <video class="hero-video" autoplay muted playsinline loop id="heroVid"><source src="hero-video-2.mp4" type="video/mp4"></video>
   <div class="hero-overlay"></div>
   <div class="hero-line"></div>
   <div class="hero-content">
@@ -1267,15 +1267,7 @@ function openLogin(){document.getElementById('loginModal').classList.add('open')
 function closeLogin(){document.getElementById('loginModal').classList.remove('open');document.body.style.overflow=''}
 document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this)closeLogin()})
 
-// Hero video cycling
-const heroVid=document.getElementById('heroVid');
-const heroVideos=['hero-video.mp4','hero-video-2.mp4'];
-let currentVid=0;
-heroVid.addEventListener('ended',()=>{
-  currentVid=(currentVid+1)%heroVideos.length;
-  heroVid.src=heroVideos[currentVid];
-  heroVid.play();
-});
+// Hero video: loops (single video)
 
 // Nav scroll
 const nav=document.getElementById('nav');
