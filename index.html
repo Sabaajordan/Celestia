@@ -1161,6 +1161,7 @@ function cleanErrMsg(raw, fallback){
       if(code === 429 || String(code).includes('rate')) return "Too many requests. Please wait a minute and try again.";
       if(code === 400) return "Invalid request. Please check your email address.";
       if(code === 422) return "This email may already be registered or invalid.";
+      if(code === 500 || code === 503) return "The account server is having trouble. Please try again in a few minutes.";
       s = `Error ${code}. Please try again.`;
     }
   }
