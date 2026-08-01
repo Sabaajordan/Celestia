@@ -1144,6 +1144,18 @@ function togglePw(inputId,btn){
   inp.type=inp.type==='password'?'text':'password';
 }
 
+function cleanErrMsg(raw, fallback){
+  let s = raw;
+  if(!s) return fallback;
+  if(typeof s === 'object'){
+    s = s.message || s.error_description || s.msg || '';
+  }
+  s = String(s).trim();
+  if(!s || s === '{}' || s === '[object Object]') return fallback;
+  if(/failed to fetch|networkerror|network|typeerror/i.test(s)) return "Can't reach the account server. Please check your internet connection and try again.";
+  return s;
+}
+
 async function handleSignIn(){
   const email=document.getElementById('loginEmail').value.trim();
   const pw=document.getElementById('loginPw').value;
@@ -1155,8 +1167,7 @@ async function handleSignIn(){
   try{
     const res=await sb.auth.signInWithPassword({email,password:pw});
     if(res && res.error){
-      const m=res.error.message||res.error.error_description||res.error.msg||'Unable to sign in. Check your email and password.';
-      return showErr(m);
+      return showErr(cleanErrMsg(res.error, 'Unable to sign in. Check your email and password.'));
     }
     if(!res || !res.data || !res.data.user){
       return showErr('Sign-in failed. Please try again.');
@@ -1164,11 +1175,7 @@ async function handleSignIn(){
     showToast('Welcome back!');closeLogin();
   }catch(ex){
     console.error('Sign-in error:',ex);
-    const raw=(ex && (ex.message||ex.error_description))||'';
-    const friendly = /failed to fetch|networkerror|network/i.test(raw)
-      ? "Can't reach the account server. Please check your internet connection and try again."
-      : (raw || 'Network error. Please check your connection and try again.');
-    showErr(friendly);
+    showErr(cleanErrMsg(ex, 'Network error. Please check your connection and try again.'));
   }
 }
 
@@ -1186,18 +1193,13 @@ async function handleSignUp(){
   try{
     const res=await sb.auth.signUp({email,password:pw,options:{data:{name,phone}}});
     if(res && res.error){
-      const m=res.error.message||res.error.error_description||res.error.msg||'Unable to create account. Please try again.';
-      return showErr(m);
+      return showErr(cleanErrMsg(res.error, 'Unable to create account. Please try again.'));
     }
     showToast('Account created! Check your email to confirm.');
     showSignIn();
   }catch(ex){
     console.error('Sign-up error:',ex);
-    const raw=(ex && (ex.message||ex.error_description))||'';
-    const friendly = /failed to fetch|networkerror|network/i.test(raw)
-      ? "Can't reach the account server. Please check your internet connection and try again."
-      : (raw || 'Network error. Please check your connection and try again.');
-    showErr(friendly);
+    showErr(cleanErrMsg(ex, 'Network error. Please check your connection and try again.'));
   }
 }
 
@@ -1213,17 +1215,12 @@ async function handleResetPw(){
   try{
     const res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
     if(res && res.error){
-      const m=res.error.message||res.error.error_description||res.error.msg||'Unable to send reset link. Please try again.';
-      return showErr(m);
+      return showErr(cleanErrMsg(res.error, 'Unable to send reset link. Please try again.'));
     }
     showOk('Reset link sent! Check your email.');
   }catch(ex){
     console.error('Reset password error:',ex);
-    const raw=(ex && (ex.message||ex.error_description))||'';
-    const friendly = /failed to fetch|networkerror|network/i.test(raw)
-      ? "Can't reach the account server. Please check your internet connection and try again."
-      : (raw || 'Network error. Please check your connection and try again.');
-    showErr(friendly);
+    showErr(cleanErrMsg(ex, 'Network error. Please check your connection and try again.'));
   }
 }
 
