@@ -124,6 +124,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 .btn-ghost::after{content:'';position:absolute;bottom:.7rem;left:0;width:100%;height:1px;background:var(--dim);transition:background .3s}
 .btn-ghost:hover{color:var(--gold)}.btn-ghost:hover::after{background:var(--gold)}
 .hero-scroll{position:absolute;right:2.5rem;bottom:6rem;writing-mode:vertical-rl;display:flex;align-items:center;gap:1rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+html[dir="rtl"] .hero-scroll{right:auto;left:2.5rem}
 .hero-scroll::after{content:'';width:1px;height:50px;background:linear-gradient(to bottom,var(--gold3),transparent)}
 
 /* MARQUEE */
@@ -382,9 +383,19 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
 @media(max-width:900px){.srv-grid{grid-template-columns:1fr 1fr}.rev-grid{grid-template-columns:1fr}}
 @media(max-width:768px){
   .nav{padding:1rem 1.5rem}.nav.scrolled{padding:.8rem 1.5rem}
-  .nav-links{display:none;position:fixed;inset:0;background:rgba(6,5,4,.97);backdrop-filter:blur(20px);flex-direction:column;justify-content:center;align-items:center;gap:2.5rem;z-index:200}
-  .nav-links.open{display:flex}.nav-links a{font-size:.9rem;letter-spacing:.25em;color:var(--white)}
-  .hamburger{display:flex;z-index:300}
+  .nav-right{position:relative;z-index:1}
+  .nav-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,5,4,.5);opacity:0;pointer-events:none;transition:opacity .3s;z-index:240}
+  .nav-backdrop.open{opacity:1;pointer-events:auto}
+  .nav-links{display:flex;position:fixed;top:0;left:0;right:0;background:#0a0806;flex-direction:column;align-items:stretch;gap:0;z-index:250;padding:1rem 1.5rem 1.5rem;transform:translateY(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);border-bottom:1px solid rgba(184,149,106,.2);list-style:none;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .nav-links.open{transform:translateY(0)}
+  .nav-links li{width:100%}
+  .nav-close-row{display:flex;justify-content:flex-end;padding-bottom:.6rem;border-bottom:1px solid rgba(184,149,106,.15);margin-bottom:.4rem}
+  .nav-close-btn{color:var(--gold);font-size:1.3rem;padding:.4rem .7rem;border:1px solid rgba(184,149,106,.25);border-radius:8px;background:rgba(184,149,106,.06);cursor:pointer;transition:all .2s}
+  .nav-close-btn:hover{background:rgba(184,149,106,.15);color:var(--white)}
+  .nav-links a{font-size:1rem;letter-spacing:.15em;color:var(--white);padding:1rem 0;display:block;width:100%;border-bottom:1px solid rgba(184,149,106,.1);text-transform:uppercase}
+  .nav-links li:last-child a{border-bottom:none}
+  .nav-links a:hover,.nav-links a:active{color:var(--gold)}
+  .hamburger{display:flex;z-index:300;position:relative}
   .hero{padding:0 1.5rem 4rem}.hero h1{font-size:clamp(2.6rem,10vw,4rem)}
   .sect,.sect-sm{padding:4rem 1.5rem}
   .coll-card{flex:0 0 280px}
@@ -394,6 +405,7 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
   .f-top{grid-template-columns:1fr 1fr;gap:2rem}.f-bottom{flex-direction:column;gap:1rem;text-align:center}
   .ch-row{grid-template-columns:1fr}
 }
+html[dir="rtl"] .nav-links a{text-align:right}
 
 /* ANIMATIONS */
 .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.4,0,.2,1)}
@@ -405,10 +417,14 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
 <!-- SUCCESS TOAST -->
 <div class="success-msg" id="toast"></div>
 
+<!-- MOBILE MENU BACKDROP -->
+<div class="nav-backdrop" id="navBackdrop" onclick="closeNav()"></div>
+
 <!-- NAV -->
 <nav class="nav" id="nav">
   <a href="#home" class="nav-logo"><img src="logo.png" alt="Celestia"></a>
   <ul class="nav-links" id="navLinks">
+    <li class="nav-close-row"><button class="nav-close-btn" onclick="closeNav()" aria-label="Close menu">✕</button></li>
     <li><a href="#home" onclick="closeNav()">Home</a></li>
     <li><a href="#collections" onclick="closeNav()">Shop</a></li>
     <li><a href="#about" onclick="closeNav()">About</a></li>
@@ -417,7 +433,7 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
     <li><a href="#faq" onclick="closeNav()">FAQ</a></li>
   </ul>
   <div class="nav-right">
-    <button class="nav-lang" onclick="toggleLang(this)">العربية</button>
+    <button class="nav-lang" id="langToggleBtn" onclick="toggleLang(this)">العربية</button>
     <button class="nav-lang" onclick="openLogin()" style="border-color:rgba(184,149,106,.35);color:var(--gold2)">Login</button>
     <button class="nav-cart" onclick="openCart()">🛒 <span class="cart-count" id="cartCount">0</span></button>
     <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -1127,102 +1143,182 @@ function togglePw(inputId,btn){
 }
 
 async function handleSignIn(){
-  const email=document.getElementById('loginEmail').value;
+  const email=document.getElementById('loginEmail').value.trim();
   const pw=document.getElementById('loginPw').value;
   const err=document.getElementById('loginError');
-  if(!email||!pw){err.textContent='Please enter email and password';err.style.display='block';return}
-  if(!sb){err.textContent='Account system not configured yet';err.style.display='block';return}
+  const showErr=(m)=>{err.textContent=m;err.style.display='block'};
+  if(!email||!pw)return showErr('Please enter email and password');
+  if(!sb)return showErr('Account system not configured yet');
   err.style.display='none';
-  const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
-  if(error){err.textContent=error.message;err.style.display='block';return}
-  showToast('Welcome back!');closeLogin();
+  try{
+    const res=await sb.auth.signInWithPassword({email,password:pw});
+    if(res && res.error){
+      const m=res.error.message||res.error.error_description||res.error.msg||'Unable to sign in. Check your email and password.';
+      return showErr(m);
+    }
+    if(!res || !res.data || !res.data.user){
+      return showErr('Sign-in failed. Please try again.');
+    }
+    showToast('Welcome back!');closeLogin();
+  }catch(ex){
+    console.error('Sign-in error:',ex);
+    showErr((ex && (ex.message||ex.error_description))||'Network error. Please check your connection and try again.');
+  }
 }
 
 async function handleSignUp(){
-  const name=document.getElementById('signupName').value;
-  const email=document.getElementById('signupEmail').value;
+  const name=document.getElementById('signupName').value.trim();
+  const email=document.getElementById('signupEmail').value.trim();
   const pw=document.getElementById('signupPw').value;
-  const phone=document.getElementById('signupPhone').value;
+  const phone=document.getElementById('signupPhone').value.trim();
   const err=document.getElementById('signupError');
-  if(!name||!email||!pw){err.textContent='Please fill in all required fields';err.style.display='block';return}
-  if(pw.length<6){err.textContent='Password must be at least 6 characters';err.style.display='block';return}
-  if(!sb){err.textContent='Account system not configured yet';err.style.display='block';return}
+  const showErr=(m)=>{err.textContent=m;err.style.display='block'};
+  if(!name||!email||!pw)return showErr('Please fill in all required fields');
+  if(pw.length<6)return showErr('Password must be at least 6 characters');
+  if(!sb)return showErr('Account system not configured yet');
   err.style.display='none';
-  const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{name,phone}}});
-  if(error){err.textContent=error.message;err.style.display='block';return}
-  showToast('Account created! Check your email to confirm.');
-  showSignIn();
+  try{
+    const res=await sb.auth.signUp({email,password:pw,options:{data:{name,phone}}});
+    if(res && res.error){
+      const m=res.error.message||res.error.error_description||res.error.msg||'Unable to create account. Please try again.';
+      return showErr(m);
+    }
+    showToast('Account created! Check your email to confirm.');
+    showSignIn();
+  }catch(ex){
+    console.error('Sign-up error:',ex);
+    showErr((ex && (ex.message||ex.error_description))||'Network error. Please check your connection and try again.');
+  }
 }
 
 async function handleForgotPw(){showForgotPw()}
 async function handleResetPw(){
-  const email=document.getElementById('resetEmail').value;
+  const email=document.getElementById('resetEmail').value.trim();
   const msg=document.getElementById('resetMsg');
-  if(!email){msg.textContent='Please enter your email';msg.style.color='#e74c3c';msg.style.display='block';return}
-  if(!sb){msg.textContent='Account system not configured yet';msg.style.color='#e74c3c';msg.style.display='block';return}
-  const {error}=await sb.auth.resetPasswordForEmail(email);
-  if(error){msg.textContent=error.message;msg.style.color='#e74c3c';msg.style.display='block';return}
-  msg.textContent='Reset link sent! Check your email.';msg.style.color='var(--gold)';msg.style.display='block';
+  const showErr=(m)=>{msg.textContent=m;msg.style.color='#e74c3c';msg.style.display='block'};
+  const showOk=(m)=>{msg.textContent=m;msg.style.color='var(--gold)';msg.style.display='block'};
+  if(!email)return showErr('Please enter your email');
+  if(!sb)return showErr('Account system not configured yet');
+  msg.style.display='none';
+  try{
+    const res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+    if(res && res.error){
+      const m=res.error.message||res.error.error_description||res.error.msg||'Unable to send reset link. Please try again.';
+      return showErr(m);
+    }
+    showOk('Reset link sent! Check your email.');
+  }catch(ex){
+    console.error('Reset password error:',ex);
+    showErr((ex && (ex.message||ex.error_description))||'Network error. Please check your connection and try again.');
+  }
 }
 
 // === UI UTILS ===
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
-function toggleNav(){document.getElementById('navLinks').classList.toggle('open')}
-function closeNav(){document.getElementById('navLinks').classList.remove('open')}
+function toggleNav(){
+  const nav=document.getElementById('navLinks');
+  const bd=document.getElementById('navBackdrop');
+  nav.classList.toggle('open');
+  if(bd) bd.classList.toggle('open', nav.classList.contains('open'));
+  document.body.style.overflow = nav.classList.contains('open') ? 'hidden' : '';
+}
+function closeNav(){
+  document.getElementById('navLinks').classList.remove('open');
+  const bd=document.getElementById('navBackdrop');
+  if(bd) bd.classList.remove('open');
+  document.body.style.overflow='';
+}
 // === LANGUAGE / TRANSLATION SYSTEM ===
 const T = {
   ar: {
     // Nav
-    'Home':'الرئيسية','Shop':'التسوق','Collections':'المجموعات','About':'من نحن','Contact':'اتصل بنا','Reviews':'التقييمات','FAQ':'الأسئلة الشائعة','Brands':'الماركات',
+    'Home':'الرئيسية','Shop':'التسوق','Collections':'المجموعات','About':'من نحن','Contact':'اتصل بنا','Reviews':'التقييمات','FAQ':'الأسئلة الشائعة','Brands':'الماركات','Login':'تسجيل الدخول',
     // Hero
-    'Where Style':'حيث يلتقي الأسلوب','Meets ':'مع ','Sparkle':'البريق','Where style meets sparkle. An accessories boutique in Amman, Jordan.':'حيث يلتقي الأسلوب بالبريق. متجر إكسسوارات في عمّان، الأردن.',
+    'Where Style':'حيث يلتقي الأسلوب','Meets':'مع','Sparkle':'البريق','Accessories · Amman':'إكسسوارات · عمّان',
+    'Where style meets sparkle. An accessories boutique in Amman, Jordan.':'حيث يلتقي الأسلوب بالبريق. متجر إكسسوارات في عمّان، الأردن.',
+    'Curated accessories and premium cosmetics, handpicked to add that perfect touch of magic to your look.':'إكسسوارات مختارة ومستحضرات تجميل فاخرة، مُنتقاة لإضافة تلك اللمسة السحرية إلى إطلالتك.',
     'Shop Now':'تسوّق الآن','Our Story':'قصتنا','Scroll':'مرّر','to explore':'للاستكشاف','Available Now':'متوفر الآن','Coming Soon':'قريباً',
+    'Follow Us @celestiaaccessories.jo':'تابعنا @celestiaaccessories.jo',
     // Sections
     'Our Collections':'مجموعاتنا','Our Products':'منتجاتنا','All Products':'كل المنتجات','All':'الكل','New Arrivals':'الوصول الجديد',
     'Accessories':'إكسسوارات','Bags':'حقائب','Best Sellers':'الأكثر مبيعاً','Unique Pieces':'قطع فريدة','Premium cosmetics':'مستحضرات تجميل فاخرة',
+    'Make-up':'مكياج','Premium cosmetics from top brands':'مستحضرات تجميل من أفضل الماركات',
     'Premium cosmetics and beauty essentials. Add to cart and checkout with delivery.':'مستحضرات تجميل وضروريات جمال فاخرة. أضف إلى السلة وتابع الشراء مع التوصيل.',
     'Jewelry, hair & more':'مجوهرات، إكسسوارات شعر والمزيد','Clutches, totes & evening bags':'كلاتشات، حقائب ومقتنيات المساء',
+    'Browse →':'تصفح ←','Browse':'تصفح',
     // Testimonials & Reviews
     'Testimonials':'شهادات','What Our Clients Say':'ماذا يقول عملاؤنا','Rating':'التقييم','Excellent':'ممتاز','Based on 27 Google reviews':'استناداً إلى 27 تقييم على Google','Google Review':'تقييم Google',
     // About
-    'Founder & Owner':'المؤسسة والمالكة','Our Story':'قصتنا',
+    'Founder & Owner':'المؤسسة والمالكة','About Us':'من نحن','Our Story':'قصتنا',
+    'Founded in Amman with a passion for elegance, Celestia is a boutique where every piece is chosen to make you feel extraordinary.':'تأسست في عمّان بشغف الأناقة، سيليستيا متجر بوتيك تُختار فيه كل قطعة لتشعرك بأنك استثنائية.',
+    'From our curated bags and statement jewelry to our premium cosmetics from Max Factor, Maybelline, ArtDeco, Essence, and Bourjois — we bring you designs that transform your everyday into something remarkable.':'من حقائبنا المُنتقاة ومجوهراتنا المميزة إلى مستحضرات التجميل الفاخرة من ماكس فاكتور ومايبيلين وآرت ديكو وإسنس وبورجوا — نقدم لك تصاميم تحوّل يومياتك إلى شيء استثنائي.',
+    'Accessories speak volumes about your personal style, silently narrating the unique tale of who you are and showcasing a captivating timeline of cherished memories.':'الإكسسوارات تتحدث بصمت عن أسلوبك الشخصي، وتروي حكايتك الفريدة، وتعرض شريطاً آسراً من الذكريات العزيزة.',
+    // Services
+    'Our Services':'خدماتنا','In-Store':'في المتجر','Pick-Up':'استلام','Delivery':'التوصيل',
+    'Visit our Amman boutique':'زوروا متجرنا في عمّان','Order ahead, collect at your convenience':'اطلب مسبقاً واستلم في الوقت المناسب لك',
+    'We deliver across Amman and Jordan':'نوصل إلى جميع أنحاء عمّان والأردن',
     // Contact
-    'Contact':'اتصل بنا','Visit Our Boutique':'زوروا متجرنا','Visit our Amman boutique':'زوروا متجرنا في عمّان','Address':'العنوان','Hours':'ساعات العمل','Phone':'الهاتف','Instagram':'انستغرام','Email':'البريد الإلكتروني','WhatsApp':'واتساب',
+    'Visit Our Boutique':'زوروا متجرنا','Address':'العنوان','Hours':'ساعات العمل','Phone':'الهاتف','Instagram':'انستغرام','Email':'البريد الإلكتروني','WhatsApp':'واتساب',
     'Chat with Us':'تحدث معنا','Send a Message':'أرسل رسالة','Send Message':'إرسال الرسالة','Message':'الرسالة','Full Name':'الاسم الكامل','Name':'الاسم',
-    'Amman, Jordan':'عمّان، الأردن','Friday: Closed':'الجمعة: مغلق','Find Us on Google Maps':'اعثر علينا على خرائط Google','Connect':'تواصل',
+    'Amman, Jordan':'عمّان، الأردن','Shihan Al-Oqlah St. 9':'شارع شيحان العقلة 9',
+    'Mon–Thu, Sat–Sun: 10 AM – 2 PM, 4 – 8 PM':'الاثنين–الخميس، السبت–الأحد: 10 صباحاً – 2 ظهراً، 4 – 8 مساءً',
+    'Friday: Closed':'الجمعة: مغلق','Find Us on Google Maps':'اعثر علينا على خرائط Google','Open in Maps →':'افتح في الخرائط ←','Connect':'تواصل',
     // FAQ
     'Common Questions':'الأسئلة الشائعة','How to Shop With Us':'كيف تتسوق معنا','How do I pay?':'كيف أدفع؟','Do you accept returns or exchanges?':'هل تقبلون الإرجاع أو الاستبدال؟',
     'Do you deliver outside Amman?':'هل توصلون خارج عمّان؟','Are all products authentic?':'هل جميع المنتجات أصلية؟','Are your nail polishes halal certified?':'هل طلاءات أظافركم معتمدة حلال؟',
     'How long does delivery take?':'كم يستغرق التوصيل؟','What are your opening hours?':'ما هي ساعات عملكم؟','Can I order via WhatsApp?':'هل يمكنني الطلب عبر الواتساب؟',
+    'You can pay online via PayPal or card, or choose Cash on Delivery at checkout.':'يمكنك الدفع عبر الإنترنت باستخدام PayPal أو البطاقة، أو اختيار الدفع عند الاستلام عند إتمام الشراء.',
     'Yes, we deliver across Jordan. Reach out via WhatsApp for delivery details.':'نعم، نوصل إلى جميع أنحاء الأردن. تواصل معنا عبر الواتساب لتفاصيل التوصيل.',
-    'Message us to browse and order':'راسلنا للاستعراض والطلب','Order ahead, collect at your convenience':'اطلب مسبقاً واستلم في الوقت المناسب لك',
+    'Absolutely. We are authorized retailers for all brands we carry — Bourjois, Max Factor, Essence, Maybelline, ArtDeco, and Pastel.':'بالتأكيد. نحن موزعون معتمدون لكل الماركات لدينا — بورجوا، ماكس فاكتور، إسنس، مايبيلين، آرت ديكو، وباستيل.',
+    'Monday–Thursday and Saturday–Sunday: 10 AM – 2 PM and 4 – 8 PM. Closed on Fridays.':'الاثنين–الخميس والسبت–الأحد: 10 صباحاً – 2 ظهراً و 4 – 8 مساءً. مغلق أيام الجمعة.',
+    'Yes! Message us at 07 8607 7100 with what you\'re looking for and we\'ll assist you.':'نعم! راسلنا على 07 8607 7100 مع ما تبحثين عنه وسنساعدك.',
+    'Contact us within 3 days of receiving your order for exchanges. Items must be unused and in original packaging.':'تواصلي معنا خلال 3 أيام من استلام طلبك للاستبدال. يجب أن تكون المنتجات غير مستخدمة وفي عبوتها الأصلية.',
+    'Delivery within Amman typically takes 1–2 days. Outside Amman may take 2–3 days.':'التوصيل داخل عمّان يستغرق عادةً 1–2 يوم. خارج عمّان قد يستغرق 2–3 أيام.',
+    'Yes, our Pastel nail polishes are halal certified, as shown on the product packaging.':'نعم، طلاءات أظافر باستيل لدينا معتمدة حلال، كما هو موضح على عبوة المنتج.',
+    'Message us to browse and order':'راسلنا للاستعراض والطلب',
     // Cart
     'Your Cart':'سلتك','Your cart is empty':'سلتك فارغة','Subtotal':'المجموع الفرعي','Total':'المجموع','Proceed to Checkout':'المتابعة للدفع','Remove':'إزالة','Cart':'السلة',
     // Checkout
     'Checkout':'الدفع','Delivery Details':'تفاصيل التوصيل','Delivery Area':'منطقة التوصيل','Amman':'عمّان','Outside Amman':'خارج عمّان','Full Address':'العنوان الكامل',
     'Payment Method':'طريقة الدفع','Cash on Delivery':'الدفع عند الاستلام','PayPal / Card':'PayPal / بطاقة','Pay when your order arrives':'ادفع عند وصول الطلب',
     'Pay securely with PayPal, Visa, or Mastercard':'ادفع بأمان عبر PayPal أو Visa أو Mastercard','Delivery fees will be confirmed after order':'سيتم تأكيد رسوم التوصيل بعد الطلب',
-    'Notes (optional)':'ملاحظات (اختياري)','Delivery':'التوصيل',
+    'Notes (optional)':'ملاحظات (اختياري)',
     // Auth
-    'Login':'تسجيل الدخول','Sign In':'تسجيل الدخول','Sign in':'تسجيل الدخول','Welcome Back':'أهلاً بعودتك','Welcome':'أهلاً بك','Create Account':'إنشاء حساب','Password':'كلمة المرور',
+    'Sign In':'تسجيل الدخول','Sign in':'تسجيل الدخول','Welcome Back':'أهلاً بعودتك','Welcome':'أهلاً بك','Create Account':'إنشاء حساب','Password':'كلمة المرور',
     'Forgot Password':'نسيت كلمة المرور','Forgot password?':'نسيت كلمة المرور؟','Send Reset Link':'إرسال رابط إعادة التعيين','Reset':'إعادة التعيين',
-    'Already have an account? ':'هل لديك حساب؟ ','Create one':'أنشئ حساباً',
+    'Already have an account?':'هل لديك حساب؟','Create one':'أنشئ حساباً',"Don't have an account?":"ليس لديك حساب؟",
+    '← Back to Sign In':'← العودة لتسجيل الدخول',
     // Buttons
-    'Add to Cart':'أضف إلى السلة',
+    'Add to Cart':'أضف إلى السلة','or':'أو',
     // Footer
-    'Company':'الشركة','Services':'الخدمات','We deliver across Amman and Jordan':'نوصل إلى جميع أنحاء عمّان والأردن',
-    'Celestia Accessories':'سيليستيا إكسسوارات'
+    'Company':'الشركة','Services':'الخدمات','Celestia Accessories':'سيليستيا إكسسوارات',
+    // Collections page label
+    'Collection':'مجموعة'
   }
 };
 
-// Snapshot original English text on load
+function walkTextNodes(root, cb){
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
+    acceptNode:(n)=>{
+      const t=n.textContent.trim();
+      if(!t) return NodeFilter.FILTER_REJECT;
+      const p=n.parentElement;
+      if(!p) return NodeFilter.FILTER_REJECT;
+      const tag=p.tagName;
+      if(tag==='SCRIPT'||tag==='STYLE'||tag==='NOSCRIPT') return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  let node;
+  while((node=walker.nextNode())) cb(node);
+}
+
 function snapshotOriginalText(){
-  document.querySelectorAll('body *').forEach(el=>{
-    if(el.childNodes.length===1&&el.childNodes[0].nodeType===3){
-      const txt=el.textContent.trim();
-      if(txt&&!el.dataset.origEn&&T.ar[txt]){
-        el.dataset.origEn=txt;
-      }
+  walkTextNodes(document.body,(node)=>{
+    const orig=node.textContent;
+    const trimmed=orig.trim();
+    if(T.ar[trimmed] && !node.__origEn){
+      node.__origEn=orig;
     }
   });
 }
@@ -1232,11 +1328,17 @@ function applyLang(lang){
   localStorage.setItem('celestiaLang',lang);
   document.documentElement.dir=lang==='ar'?'rtl':'ltr';
   document.documentElement.lang=lang;
-  // Swap text on translatable elements
-  document.querySelectorAll('[data-orig-en]').forEach(el=>{
-    const orig=el.dataset.origEn;
-    if(lang==='ar'&&T.ar[orig]) el.textContent=T.ar[orig];
-    else el.textContent=orig;
+  // Walk all text nodes and swap
+  walkTextNodes(document.body,(node)=>{
+    const orig=node.__origEn||node.textContent;
+    const trimmed=orig.trim();
+    if(!T.ar[trimmed]) return;
+    if(!node.__origEn) node.__origEn=orig;
+    if(lang==='ar'){
+      node.textContent=orig.replace(trimmed,T.ar[trimmed]);
+    } else {
+      node.textContent=orig;
+    }
   });
   // Swap placeholders
   document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el=>{
@@ -1247,10 +1349,9 @@ function applyLang(lang){
   });
   // Re-render products with translated fields
   renderProducts();
-  // Update the lang toggle button label
-  document.querySelectorAll('.nav-lang').forEach(b=>{
-    b.textContent = lang==='ar' ? 'English' : 'العربية';
-  });
+  // Update the language toggle button label (only the toggle button)
+  const langBtn=document.getElementById('langToggleBtn');
+  if(langBtn) langBtn.textContent = lang==='ar' ? 'English' : 'العربية';
 }
 
 function toggleLang(btn){
