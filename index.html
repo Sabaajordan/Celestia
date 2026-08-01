@@ -1145,14 +1145,30 @@ function togglePw(inputId,btn){
 }
 
 function cleanErrMsg(raw, fallback){
+  if(!raw) return fallback;
+  console.log('Auth error raw:', raw);
   let s = raw;
-  if(!s) return fallback;
   if(typeof s === 'object'){
-    s = s.message || s.error_description || s.msg || '';
+    // Try many possible fields
+    s = s.message || s.error_description || s.msg || s.hint || s.details || s.error || s.description || '';
+    // Also check nested error
+    if(!s && raw.error && typeof raw.error === 'object'){
+      s = raw.error.message || raw.error.description || '';
+    }
+    // Add status code if we have one
+    if(!s && (raw.status || raw.statusCode || raw.code)){
+      const code = raw.status || raw.statusCode || raw.code;
+      if(code === 429 || String(code).includes('rate')) return "Too many requests. Please wait a minute and try again.";
+      if(code === 400) return "Invalid request. Please check your email address.";
+      if(code === 422) return "This email may already be registered or invalid.";
+      s = `Error ${code}. Please try again.`;
+    }
   }
   s = String(s).trim();
   if(!s || s === '{}' || s === '[object Object]') return fallback;
   if(/failed to fetch|networkerror|network|typeerror/i.test(s)) return "Can't reach the account server. Please check your internet connection and try again.";
+  if(/rate.?limit|too many|for security purposes/i.test(s)) return "Too many requests. Please wait a minute and try again.";
+  if(/redirect|url/i.test(s) && /allowed|invalid|not/i.test(s)) return "Reset link configuration issue. Contact site owner.";
   return s;
 }
 
