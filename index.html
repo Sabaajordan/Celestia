@@ -73,7 +73,7 @@
   --serif:'Cormorant Garamond',Georgia,serif;
   --sans:'DM Sans',-apple-system,sans-serif;
 }
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
 body{font-family:var(--sans);background:var(--bg);color:var(--white);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 /* Arabic / RTL */
 html[dir="rtl"] body{font-family:'Tajawal','Cairo',var(--sans);text-align:right}
@@ -381,6 +381,7 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
 
 /* MOBILE */
 @media(max-width:900px){.srv-grid{grid-template-columns:1fr 1fr}.rev-grid{grid-template-columns:1fr}}
+.nav-close-row{display:none}
 @media(max-width:768px){
   .nav{padding:1rem 1.5rem}.nav.scrolled{padding:.8rem 1.5rem}
   .nav-right{position:relative;z-index:1}
@@ -1162,7 +1163,11 @@ async function handleSignIn(){
     showToast('Welcome back!');closeLogin();
   }catch(ex){
     console.error('Sign-in error:',ex);
-    showErr((ex && (ex.message||ex.error_description))||'Network error. Please check your connection and try again.');
+    const raw=(ex && (ex.message||ex.error_description))||'';
+    const friendly = /failed to fetch|networkerror|network/i.test(raw)
+      ? "Can't reach the account server. Please check your internet connection and try again."
+      : (raw || 'Network error. Please check your connection and try again.');
+    showErr(friendly);
   }
 }
 
@@ -1187,7 +1192,11 @@ async function handleSignUp(){
     showSignIn();
   }catch(ex){
     console.error('Sign-up error:',ex);
-    showErr((ex && (ex.message||ex.error_description))||'Network error. Please check your connection and try again.');
+    const raw=(ex && (ex.message||ex.error_description))||'';
+    const friendly = /failed to fetch|networkerror|network/i.test(raw)
+      ? "Can't reach the account server. Please check your internet connection and try again."
+      : (raw || 'Network error. Please check your connection and try again.');
+    showErr(friendly);
   }
 }
 
@@ -1209,7 +1218,11 @@ async function handleResetPw(){
     showOk('Reset link sent! Check your email.');
   }catch(ex){
     console.error('Reset password error:',ex);
-    showErr((ex && (ex.message||ex.error_description))||'Network error. Please check your connection and try again.');
+    const raw=(ex && (ex.message||ex.error_description))||'';
+    const friendly = /failed to fetch|networkerror|network/i.test(raw)
+      ? "Can't reach the account server. Please check your internet connection and try again."
+      : (raw || 'Network error. Please check your connection and try again.');
+    showErr(friendly);
   }
 }
 
