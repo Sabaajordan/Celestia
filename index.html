@@ -58,9 +58,7 @@
   "image": "https://celestiaaccessoriesjo.netlify.app/logo.png"
 }
 </script>
-<!-- PayPal: uncomment and add your Client ID when ready
-<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD"></script>
--->
+<!-- Payments: Cash on Delivery + CliQ (WhatsApp confirmation flow) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+Infant:ital,wght@0,300;1,300&family=Cormorant:ital,wght@0,300;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -163,9 +161,17 @@ html[dir="rtl"] .hero-scroll{right:auto;left:2.5rem}
 .coll-accessories .coll-img{background:linear-gradient(160deg,#14171a 0%,#1a2228 40%,#10151a 100%)}
 
 /* SHOP */
+.shop-cats{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem}
+.shop-cat{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;padding:.7rem 1.5rem;border:1px solid rgba(184,149,106,.25);color:var(--dim);background:transparent;transition:all .3s;font-family:inherit;cursor:pointer}
+.shop-cat:hover,.shop-cat.active{color:var(--gold);border-color:var(--gold);background:rgba(184,149,106,.08)}
 .shop-filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2.5rem}
-.shop-filter{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;padding:.55rem 1.2rem;border:1px solid rgba(184,149,106,.12);color:var(--muted);transition:all .3s}
+.shop-filter{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;padding:.55rem 1.2rem;border:1px solid rgba(184,149,106,.12);color:var(--muted);transition:all .3s;background:transparent;font-family:inherit;cursor:pointer}
 .shop-filter:hover,.shop-filter.active{color:var(--gold);border-color:var(--gold);background:rgba(184,149,106,.06)}
+.shop-filter.hidden{display:none}
+.prod-card{position:relative}
+.sold-out-badge{position:absolute;top:.6rem;right:.6rem;background:rgba(6,5,4,.85);color:var(--gold);font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;padding:.35rem .6rem;border:1px solid var(--gold);z-index:2}
+.prod-card.sold-out .prod-img{opacity:.6}
+.prod-card.sold-out .add-cart{background:rgba(120,90,60,.15);color:var(--dim);cursor:not-allowed;pointer-events:none}
 .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
 .prod-card{transition:transform .4s;display:block;cursor:pointer}.prod-card:hover{transform:translateY(-4px)}
 /* Product Detail Modal — eBay-style layout */
@@ -479,15 +485,22 @@ html[dir="rtl"] .nav-links a{text-align:right}
 <!-- SHOP -->
 <section class="sect" id="shop" style="background:var(--surface)">
   <div class="sect-header reveal"><div class="sect-label">Shop</div><div class="sect-title">Our Products</div><div class="sect-desc">Premium cosmetics and beauty essentials. Add to cart and checkout with delivery.</div></div>
-  <div class="shop-filters reveal">
+  <div class="shop-cats reveal">
+    <button class="shop-cat active" onclick="filterCategory('all',this)">All</button>
+    <button class="shop-cat" onclick="filterCategory('cosmetics',this)">Cosmetics</button>
+    <button class="shop-cat" onclick="filterCategory('skincare',this)">Skincare</button>
+    <button class="shop-cat" onclick="filterCategory('bags',this)">Bags</button>
+  </div>
+  <div class="shop-filters reveal" id="shopFilters">
     <button class="shop-filter active" onclick="filterProducts('all',this)">All</button>
-    <button class="shop-filter" onclick="filterProducts('bourjois',this)">Bourjois</button>
-    <button class="shop-filter" onclick="filterProducts('maxfactor',this)">Max Factor</button>
-    <button class="shop-filter" onclick="filterProducts('essence',this)">Essence</button>
-    <button class="shop-filter" onclick="filterProducts('maybelline',this)">Maybelline</button>
-    <button class="shop-filter" onclick="filterProducts('pastel',this)">Pastel</button>
-    <button class="shop-filter" onclick="filterProducts('garnier',this)">Garnier</button>
-    <button class="shop-filter" onclick="filterProducts('bioderma',this)">Bioderma</button>
+    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('bourjois',this)">Bourjois</button>
+    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('maxfactor',this)">Max Factor</button>
+    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('essence',this)">Essence</button>
+    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('maybelline',this)">Maybelline</button>
+    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('pastel',this)">Pastel</button>
+    <button class="shop-filter" data-cat="skincare" onclick="filterProducts('garnier',this)">Garnier</button>
+    <button class="shop-filter" data-cat="skincare" onclick="filterProducts('bioderma',this)">Bioderma</button>
+    <button class="shop-filter" data-cat="bags" onclick="filterProducts('chrisbella',this)">Chrisbella</button>
   </div>
   <div class="prod-grid" id="prodGrid"></div>
 </section>
@@ -567,7 +580,7 @@ html[dir="rtl"] .nav-links a{text-align:right}
   <div class="faq-list">
     <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Do you deliver outside Amman?</span><span class="faq-toggle">+</span></button><div class="faq-a">Yes, we deliver across Jordan. Reach out via WhatsApp for delivery details.</div></div>
     <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Are all products authentic?</span><span class="faq-toggle">+</span></button><div class="faq-a">Absolutely. We are authorized retailers for all brands we carry — Bourjois, Max Factor, Essence, Maybelline, ArtDeco, and Pastel.</div></div>
-    <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>How do I pay?</span><span class="faq-toggle">+</span></button><div class="faq-a">You can pay online via PayPal or card, or choose Cash on Delivery at checkout.</div></div>
+    <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>How do I pay?</span><span class="faq-toggle">+</span></button><div class="faq-a">You can pay instantly via CliQ, or choose Cash on Delivery at checkout.</div></div>
     <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>What are your opening hours?</span><span class="faq-toggle">+</span></button><div class="faq-a">Monday–Thursday and Saturday–Sunday: 10 AM – 2 PM and 4 – 8 PM. Closed on Fridays.</div></div>
     <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Can I order via WhatsApp?</span><span class="faq-toggle">+</span></button><div class="faq-a">Yes! Message us at 07 8607 7100 with what you're looking for and we'll assist you.</div></div>
     <div class="faq-item reveal"><button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span>Do you accept returns or exchanges?</span><span class="faq-toggle">+</span></button><div class="faq-a">Contact us within 3 days of receiving your order for exchanges. Items must be unused and in original packaging.</div></div>
@@ -641,10 +654,16 @@ html[dir="rtl"] .nav-links a{text-align:right}
     <div class="sect-label" style="margin-top:2rem">Payment Method</div>
     <div class="payment-options">
       <div class="pay-option selected" onclick="selectPayment(this,'cod')"><div class="pay-radio"></div><div class="pay-info"><div class="pay-title">Cash on Delivery</div><div class="pay-sub">Pay when your order arrives</div></div></div>
-      <div class="pay-option" onclick="selectPayment(this,'paypal')"><div class="pay-radio"></div><div class="pay-info"><div class="pay-title">PayPal / Card</div><div class="pay-sub">Pay securely with PayPal, Visa, or Mastercard</div></div></div>
+      <div class="pay-option" onclick="selectPayment(this,'cliq')"><div class="pay-radio"></div><div class="pay-info"><div class="pay-title">CliQ</div><div class="pay-sub">We'll share payment details on WhatsApp</div></div></div>
     </div>
-    <div id="paypal-buttons" style="display:none;margin:1rem 0"></div>
+    <div id="cliq-details" style="display:none;margin:1.2rem 0;padding:1.2rem;border:1px solid rgba(184,149,106,.25);background:rgba(184,149,106,.05)">
+      <div style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem">CliQ Payment</div>
+      <div style="font-size:.85rem;line-height:1.7;color:var(--muted)">
+        We'll contact you on WhatsApp shortly to confirm your delivery details and share our CliQ payment info.
+      </div>
+    </div>
     <button class="ch-place" id="codBtn" onclick="placeOrder()">Place Order — Cash on Delivery</button>
+    <button class="ch-place" id="cliqBtn" style="display:none" onclick="placeOrder()">Place Order — CliQ</button>
     <button class="ch-back" onclick="closeCheckout()">← Back to Cart</button>
   </div>
 </div>
@@ -752,13 +771,40 @@ const products = [
   {id:29,nameAr:'سيروم برايمر هالو جود ستاف',descAr:'ترطيب ونفخ · بلوبيري وسكوالان · 30مل',brand:'essence',name:'Hello Good Stuff! Primer Serum',desc:'Hydrate & Plump · Blueberry & Squalane · 30ml',price:5,img:'products/essence-primer-serum.jpg',colors:[]},
   {id:27,nameAr:'سيروم تصغير المسام هالو جود ستاف',descAr:'برمان ونياسيناميد · 30مل',brand:'essence',name:'Hello Good Stuff! Pore Minimizing Serum',desc:'With pomegranate & niacinamide · 30ml',price:5,img:'products/essence-pore-serum.jpg',colors:[]},
   {id:30,nameAr:'كريم الوجه ماجيك أول إن ون',descAr:'إطلالة صحية بثوانٍ · تغطية شفافة · تنعيم',brand:'essence',name:'Magic All In One Face Cream',desc:'Healthy look in seconds · Sheer coverage · Blurring',price:4,img:'products/essence-magic-cream.jpg',colors:[]},
-  {id:22,nameAr:'ماء ميسيلار بيور أكتيف من غارنييه',descAr:'ينظف + ينقي · للبشرة المختلطة/الدهنية · 400مل',brand:'garnier',name:'PureActive Micellar Water',desc:'Cleanses + Purifies · Combination/oily skin · 400ml',price:5.5,img:'products/garnier-pure-active.jpg',colors:[]},
-  {id:23,nameAr:'ماء ميسيلار فيتامين سي من غارنييه',descAr:'يزيل المكياج + ينظف + يعيد إشراقة البشرة · للبشرة الباهتة',brand:'garnier',name:'Vitamin C Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Radiance · Dull skin',price:5.5,img:'products/garnier-vitamin-c.jpg',colors:[]},
-  {id:24,nameAr:'ماء ميسيلار من غارنييه',descAr:'يزيل المكياج + ينظف + يلطف · للبشرة الحساسة',brand:'garnier',name:'Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Soothes · Sensitive skin',price:5.5,img:'products/garnier-sensitive.jpg',colors:[]},
-  {id:25,nameAr:'بيوديرما سيبيوم H2O 250مل',descAr:'ماء ميسيلار منظف · للبشرة المختلطة/الدهنية',brand:'bioderma',name:'Sébium H2O 250ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:12,img:'products/bioderma-sebium-250.jpg',colors:[]},
-  {id:26,nameAr:'بيوديرما سيبيوم H2O 500مل',descAr:'ماء ميسيلار منظف · للبشرة المختلطة/الدهنية',brand:'bioderma',name:'Sébium H2O 500ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:16,img:'products/bioderma-sebium-500.jpg',colors:[]},
+  {id:22,category:'skincare',nameAr:'ماء ميسيلار بيور أكتيف من غارنييه',descAr:'ينظف + ينقي · للبشرة المختلطة/الدهنية · 400مل',brand:'garnier',name:'PureActive Micellar Water',desc:'Cleanses + Purifies · Combination/oily skin · 400ml',price:5.5,img:'products/garnier-pure-active-new.jpg',colors:[]},
+  {id:23,category:'skincare',nameAr:'ماء ميسيلار فيتامين سي من غارنييه',descAr:'يزيل المكياج + ينظف + يعيد إشراقة البشرة · للبشرة الباهتة',brand:'garnier',name:'Vitamin C Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Radiance · Dull skin',price:5.5,img:'products/garnier-vitamin-c-new.jpg',colors:[]},
+  {id:24,category:'skincare',nameAr:'ماء ميسيلار من غارنييه',descAr:'يزيل المكياج + ينظف + يلطف · للبشرة الحساسة',brand:'garnier',name:'Micellar Cleansing Water',desc:'Removes makeup + Cleanses + Soothes · Sensitive skin',price:5.5,img:'products/garnier-sensitive-new.jpg',colors:[]},
+  {id:25,category:'skincare',nameAr:'بيوديرما سيبيوم H2O 250مل',descAr:'ماء ميسيلار منظف · للبشرة المختلطة/الدهنية',brand:'bioderma',name:'Sébium H2O 250ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:12,img:'products/bioderma-sebium-new.jpg',colors:[]},
+  {id:26,category:'skincare',nameAr:'بيوديرما سيبيوم H2O 500مل',descAr:'ماء ميسيلار منظف · للبشرة المختلطة/الدهنية',brand:'bioderma',name:'Sébium H2O 500ml',desc:'Purifying cleansing micellar water · Combination/oily skin',price:16,img:'products/bioderma-sebium-new.jpg',colors:[]},
   {id:17,nameAr:'سائل مجفف سريع للأظافر',descAr:'لمعان · يحمي المانيكير',brand:'pastel',name:'Quick Dry Solution',desc:'Shine · Protects manicure',price:3.5,img:'products/pastel-quick-dry.jpg',colors:[]},
   {id:18,nameAr:'جل العناية بالأظافر',descAr:'بالكالسيوم · مقوّي',brand:'pastel',name:'Nail Care Gel',desc:'With calcium · Strengthening',price:3.5,img:'products/pastel-nail-care-gel.jpg',colors:[]},
+
+  // === BAGS — Chrisbella & Evening Collection ===
+  // Everyday Chrisbella
+  {id:100,category:'bags',brand:'chrisbella',nameAr:'حقيبة كيلي المصغرة بالكريستال الوردي',descAr:'حقيبة صغيرة بمقبض علوي · تصميم كيلي · مرصعة بالكريستال',name:'Pink Crystal Mini Kelly',desc:'Top-handle mini · Kelly silhouette · Crystal-embellished',price:48,img:'products/bags/pink-mini-kelly.jpg',colors:[]},
+  {id:101,category:'bags',brand:'chrisbella',nameAr:'حقيبة توت مهيكلة سوداء',descAr:'جلد أسود · إكسسوارات ذهبية على شكل عقدة · مقاسات متوسطة',name:'Black Structured Tote',desc:'Black leather · Gold knot hardware · Medium size',price:70,img:'products/bags/black-structured-tote.jpg',colors:[]},
+  {id:102,category:'bags',brand:'chrisbella',nameAr:'حقيبة هوبو قماشية سوداء',descAr:'قماش أسود مع جلد · حزام كتف مطبوع بالشعار',name:'Black Canvas Hobo',desc:'Black canvas + leather · Logo-print shoulder strap',price:70,img:'products/bags/black-canvas-hobo.jpg',colors:[]},
+  {id:103,category:'bags',brand:'chrisbella',nameAr:'حقيبة توت زيتونية صغيرة',descAr:'جلد زيتوني · محفظة صغيرة معلقة · قياس 24×17سم',name:'Olive Mini Tote',desc:'Olive leather · Coin purse charm · 24×17 cm',price:65,img:'products/bags/olive-mini-tote.jpg',colors:[]},
+  {id:104,category:'bags',brand:'chrisbella',nameAr:'حقيبة توت بيج بوشاح',descAr:'جلد بيج · وشاح حريري مربوط على المقبض',name:'Tan Tote with Silk Scarf',desc:'Tan leather · Silk scarf tied on handle',price:60,img:'products/bags/tan-scarf-tote.jpg',colors:[]},
+  {id:105,category:'bags',brand:'chrisbella',nameAr:'حقيبة هوبو خمرية',descAr:'قماش خمري مع جلد · حزام كتف مطبوع',name:'Burgundy Canvas Hobo',desc:'Burgundy canvas + leather · Printed shoulder strap',price:70,img:'products/bags/burgundy-hobo.jpg',colors:[]},
+
+  // Evening / rhinestone
+  {id:106,category:'bags',brand:'chrisbella',nameAr:'حقيبة كلتش سوداء بالكريستال بسلسلة فضية',descAr:'كريستال أسود · سلسلة فضية · مناسبة للسهرات',name:'Black Crystal Clutch with Silver Chain',desc:'Black crystal · Silver chain · Evening',price:50,img:'products/bags/black-chain-clutch.jpg',colors:[]},
+  {id:107,category:'bags',brand:'chrisbella',nameAr:'كلتش ذهبي شيفرون بمشبك زهرة',descAr:'نقشة شيفرون بالكريستال · مشبك زهرة كريستال · إطار ذهبي',name:'Gold Chevron Floral Clasp Clutch',desc:'Chevron crystal pattern · Floral crystal clasp · Gold frame',price:100,img:'products/bags/gold-chevron-clutch.jpg',colors:[]},
+  {id:108,category:'bags',brand:'chrisbella',nameAr:'كلتش ذهبي منسوج بالكريستال',descAr:'شكل بوتشيت منتفخ · كريستال ذهبي · سلسلة ذهبية',name:'Gold Woven Crystal Pouch',desc:'Puffy pouch shape · Gold crystal weave · Gold chain',price:100,img:'products/bags/gold-woven-pouch.jpg',colors:[]},
+  {id:109,category:'bags',brand:'chrisbella',nameAr:'كلتش ذهبي بربطة كريستال',descAr:'كريستال ذهبي بالكامل · ربطة على الواجهة · سلسلة ذهبية',name:'Gold Crystal Bow Clutch',desc:'All-over gold crystal · Bow detail · Gold chain',price:60,img:'products/bags/gold-bow-clutch.jpg',colors:[]},
+  {id:110,category:'bags',brand:'chrisbella',nameAr:'حقيبة بيج بمقبض مضفر بالكريستال',descAr:'كريستال بيج · مقبض علوي مضفر · تصميم مهيكل',name:'Beige Crystal Braided-Handle Bag',desc:'Beige crystal · Braided top handle · Structured shape',price:80,img:'products/bags/beige-braided-handle.jpg',colors:[]},
+  {id:111,category:'bags',brand:'chrisbella',nameAr:'حقيبة هوبو سوداء بميدالية زهرة',descAr:'كريستال أسود · ميدالية زهرة بارزة · مقبض واحد',name:'Black Rose Medallion Hobo',desc:'Black crystal · Raised rose medallion · Single handle',price:80,img:'products/bags/black-rose-medallion.jpg',colors:[]},
+  {id:112,category:'bags',brand:'chrisbella',nameAr:'حقيبة هوبو سوداء بالكريستال',descAr:'كريستال أسود بالكامل · تصميم هوبو منحني · إكسسوارات ذهبية',name:'Black Crystal Studded Hobo',desc:'All-over black crystal · Curved hobo · Gold hardware',price:75,img:'products/bags/black-studded-hobo.jpg',colors:[]},
+  {id:113,category:'bags',brand:'chrisbella',nameAr:'حقيبة هوبو رمادية داكنة لامعة',descAr:'كريستال رمادي داكن · مقبض علوي مستدير · إكسسوارات ذهبية',name:'Charcoal Sparkle Hobo',desc:'Dark charcoal crystal · Rounded top handle · Gold hardware',price:60,img:'products/bags/charcoal-sparkle-hobo.jpg',colors:[]},
+  {id:114,category:'bags',brand:'chrisbella',nameAr:'حقيبة هوبو فضية بشبكة كريستال',descAr:'شبكة كريستال فضية · مقبض علوي · تصميم منحني',name:'Silver Crystal Mesh Hobo',desc:'Silver crystal mesh · Top handle · Curved shape',price:60,img:'products/bags/silver-crystal-mesh.jpg',colors:[]},
+  {id:115,category:'bags',brand:'chrisbella',nameAr:'حقيبة كتف سوداء مبطنة صغيرة',descAr:'نقشة معينات مبطنة · أسود على أسود · حجم صغير',name:'Black Quilted Mini Shoulder Bag',desc:'Quilted diamond pattern · Black on black · Small size',price:50,img:'products/bags/black-quilted-small.jpg',colors:[]},
+  {id:116,category:'bags',brand:'chrisbella',nameAr:'حقيبة سوداء مبطنة بالكريستال بمقبض علوي',descAr:'نقشة معينات مع كريستال · مقبض علوي · تصميم مهيكل',name:'Black Quilted Crystal Top-Handle',desc:'Quilted crystal pattern · Top handle · Structured',price:80,img:'products/bags/black-quilted-tophandle.jpg',colors:[]},
+  {id:117,category:'bags',brand:'chrisbella',nameAr:'حقيبة موون CB سوداء بالكريستال',descAr:'شكل نصف قمر · كريستال أسود · شعار CBBC · مقبض علوي',name:'Black CB Crystal Moon Bag',desc:'Half-moon shape · Black crystal · CBBC logo · Top handle',price:75,img:'products/bags/black-cb-moon.jpg',colors:[]},
+  {id:118,category:'bags',brand:'chrisbella',soldOut:true,nameAr:'حقيبة فضية بمقبض مضفر بالكريستال',descAr:'كريستال فضي · مقبض علوي مضفر · نفدت الكمية',name:'Silver Crystal Braided-Handle Bag',desc:'Silver crystal · Braided top handle · Sold out',price:45,img:'products/bags/silver-braided-handle.jpg',colors:[]},
+  {id:119,category:'bags',brand:'chrisbella',nameAr:'حقيبة هوبو فضية بميدالية زهرة',descAr:'كريستال فضي · ميدالية زهرة بارزة · مقبض علوي',name:'Silver Rose Medallion Hobo',desc:'Silver crystal · Raised rose medallion · Top handle',price:80,img:'products/bags/silver-rose-medallion.jpg',colors:[]},
+  {id:120,category:'bags',brand:'chrisbella',nameAr:'كلتش فضي شيفرون بمشبك زهرة',descAr:'نقشة شيفرون بالكريستال · مشبك زهرة كريستال · إطار فضي',name:'Silver Chevron Floral Clasp Clutch',desc:'Chevron crystal pattern · Floral crystal clasp · Silver frame',price:100,img:'products/bags/silver-chevron-clutch.jpg',colors:[]},
+  {id:121,category:'bags',brand:'chrisbella',nameAr:'كلتش ذهبي بنقشة دوامة',descAr:'نقشة دوامة بالكريستال · إطار ذهبي · سلسلة كتف',name:'Gold Swirl-Pattern Clutch',desc:'Swirl crystal pattern · Gold frame · Shoulder chain',price:80,img:'products/bags/gold-swirl-clutch.jpg',colors:[]},
 ];
 
 // === RENDER PRODUCTS ===
@@ -767,19 +813,28 @@ function tProd(p, field){
   if(currentLang==='ar' && p[field+'Ar']) return p[field+'Ar'];
   return p[field];
 }
+function brandLabel(b){
+  const map={maxfactor:'Max Factor',bourjois:'Bourjois',essence:'Essence',maybelline:'Maybelline',pastel:'Pastel',garnier:'Garnier',bioderma:'Bioderma',chrisbella:'Chrisbella'};
+  return map[b]||b.charAt(0).toUpperCase()+b.slice(1);
+}
 function renderProducts(){
   const grid=document.getElementById('prodGrid');
   grid.innerHTML=products.map(p=>{
     const colorsHtml=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
-    const btnLabel = currentLang==='ar' ? '🛒 أضف إلى السلة' : '🛒 Add to Cart';
-    return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}" onclick="openProdModal(${p.id})">
+    const isSoldOut=p.soldOut===true;
+    const btnLabel = isSoldOut ? (currentLang==='ar'?'نفدت الكمية':'Sold Out') : (currentLang==='ar' ? '🛒 أضف إلى السلة' : '🛒 Add to Cart');
+    const soldOutBadge=isSoldOut?`<div class="sold-out-badge">${currentLang==='ar'?'نفدت':'Sold Out'}</div>`:'';
+    const clickAttr=isSoldOut?'':`onclick="openProdModal(${p.id})"`;
+    const addToCartAttr=isSoldOut?'':`onclick="event.stopPropagation();addToCart(${p.id})"`;
+    return `<div class="prod-card${isSoldOut?' sold-out':''}" data-brand="${p.brand}" data-category="${p.category||'cosmetics'}" data-id="${p.id}" ${clickAttr}>
+      ${soldOutBadge}
       <div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
-      <div class="prod-brand">${p.brand==='maxfactor'?'Max Factor':p.brand.charAt(0).toUpperCase()+p.brand.slice(1)}</div>
+      <div class="prod-brand">${brandLabel(p.brand)}</div>
       <div class="prod-name">${tProd(p,'name')}</div>
       <div class="prod-desc">${tProd(p,'desc')}</div>
       <div class="prod-price">${p.price.toFixed(2)} JOD</div>
       ${colorsHtml}
-      <button class="add-cart" onclick="event.stopPropagation();addToCart(${p.id})">${btnLabel}</button>
+      <button class="add-cart" ${addToCartAttr}>${btnLabel}</button>
     </div>`;
   }).join('');
 }
@@ -958,11 +1013,35 @@ function selectColor(e,pid){
   }
 }
 
-function filterProducts(brand,btn){
-  document.querySelectorAll('.shop-filter').forEach(b=>b.classList.remove('active'));
+let currentCategory='all';
+let currentBrand='all';
+function filterCategory(cat,btn){
+  document.querySelectorAll('.shop-cat').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  currentCategory=cat;
+  // Show/hide brand filter buttons based on category
+  document.querySelectorAll('#shopFilters .shop-filter').forEach(b=>{
+    const bCat=b.dataset.cat;
+    if(!bCat){b.classList.remove('hidden');return} // "All" button
+    b.classList.toggle('hidden',cat!=='all'&&cat!==bCat);
+  });
+  // Reset brand selection to "All"
+  document.querySelectorAll('#shopFilters .shop-filter').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#shopFilters .shop-filter').classList.add('active');
+  currentBrand='all';
+  applyFilters();
+}
+function filterProducts(brand,btn){
+  document.querySelectorAll('#shopFilters .shop-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentBrand=brand;
+  applyFilters();
+}
+function applyFilters(){
   document.querySelectorAll('.prod-card').forEach(c=>{
-    c.classList.toggle('hidden',brand!=='all'&&c.dataset.brand!==brand);
+    const catMatch=currentCategory==='all'||c.dataset.category===currentCategory;
+    const brandMatch=currentBrand==='all'||c.dataset.brand===currentBrand;
+    c.classList.toggle('hidden',!(catMatch&&brandMatch));
   });
 }
 
@@ -971,6 +1050,7 @@ let cart=[];
 
 function addToCart(pid){
   const p=products.find(x=>x.id===pid);
+  if(!p||p.soldOut)return;
   const card=document.querySelector(`.prod-card[data-id="${pid}"]`);
   const selected=card?.querySelector('.color-swatch.selected');
   const color=selected?selected.dataset.color:'';
@@ -1016,7 +1096,6 @@ function closeCart(){document.getElementById('cartDrawer').classList.remove('ope
 
 // === CHECKOUT ===
 let paymentMethod='cod';
-let paypalRendered=false;
 
 function openCheckout(){
   if(!cart.length)return;
@@ -1032,52 +1111,18 @@ function closeCheckout(){document.getElementById('checkoutModal').classList.remo
 function selectPayment(el,method){
   document.querySelectorAll('.pay-option').forEach(o=>o.classList.remove('selected'));
   el.classList.add('selected');paymentMethod=method;
-  const ppContainer=document.getElementById('paypal-buttons');
+  const cliqBox=document.getElementById('cliq-details');
   const codBtn=document.getElementById('codBtn');
-  if(method==='paypal'){
+  const cliqBtn=document.getElementById('cliqBtn');
+  if(method==='cliq'){
     codBtn.style.display='none';
-    ppContainer.style.display='block';
-    if(!paypalRendered && window.paypal){
-      renderPayPalButtons();
-      paypalRendered=true;
-    }
+    cliqBtn.style.display='block';
+    cliqBox.style.display='block';
   } else {
     codBtn.style.display='block';
-    ppContainer.style.display='none';
+    cliqBtn.style.display='none';
+    cliqBox.style.display='none';
   }
-}
-
-function renderPayPalButtons(){
-  paypal.Buttons({
-    style:{layout:'vertical',color:'gold',shape:'rect',label:'pay',height:45},
-    createOrder:function(data,actions){
-      const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
-      const tax=subtotal*0.16;
-      const total=subtotal+tax;
-      const usdTotal=(total*1.41).toFixed(2);
-      return actions.order.create({
-        purchase_units:[{amount:{value:usdTotal,currency_code:'USD'},description:'Celestia Accessories Order'}]
-      });
-    },
-    onApprove:function(data,actions){
-      return actions.order.capture().then(function(details){
-        const name=document.getElementById('chName').value;
-        const phone=document.getElementById('chPhone').value;
-        const address=document.getElementById('chAddress').value;
-        const area=document.getElementById('chArea').value;
-        const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
-        const tax=subtotal*0.16;
-        const total=subtotal+tax;
-        saveOrder({name,phone,address,area,items:cart,subtotal,tax,delivery:0,total,payment:'paypal',paypal_id:details.id,status:'paid'});
-        const itemsList=cart.map(i=>`• ${i.name}${i.color?' ('+i.color+')':''} ×${i.qty} = ${(i.price*i.qty).toFixed(2)} JOD`).join('\n');
-        const msg=`✅ PAID Order (PayPal #${details.id}):\n${itemsList}\nSubtotal: ${subtotal.toFixed(2)} JOD\nTax (16%): ${tax.toFixed(2)} JOD\nTotal: ${total.toFixed(2)} JOD\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\nArea: ${area==='amman'?'Amman':'Outside Amman'}`;
-        window.open('https://wa.me/96278607710?text='+encodeURIComponent(msg),'_blank');
-        showToast('Payment successful! Order confirmed.');
-        cart=[];updateCartUI();closeCheckout();
-      });
-    },
-    onError:function(err){showToast('Payment failed. Please try again.')}
-  }).render('#paypal-buttons');
 }
 
 function updateCheckoutSummary(){
@@ -1102,11 +1147,16 @@ function placeOrder(){
   const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const tax=subtotal*0.16;
   const total=subtotal+tax;
-  saveOrder({name,phone,address,area,items:cart,subtotal,tax,delivery:0,total,payment:'cod',status:'pending'});
+  const isCliq=paymentMethod==='cliq';
+  const status=isCliq?'awaiting_payment':'pending';
+  saveOrder({name,phone,address,area,items:cart,subtotal,tax,delivery:0,total,payment:paymentMethod,status});
   const itemsList=cart.map(i=>`• ${i.name}${i.color?' ('+i.color+')':''} ×${i.qty} = ${(i.price*i.qty).toFixed(2)} JOD`).join('\n');
-  const msg=`🛒 New Order (Cash on Delivery):\n${itemsList}\nSubtotal: ${subtotal.toFixed(2)} JOD\nTax (16%): ${tax.toFixed(2)} JOD\nTotal: ${total.toFixed(2)} JOD\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\nArea: ${area==='amman'?'Amman':'Outside Amman'}`;
+  const header=isCliq
+    ?`💳 New Order (CliQ — please share payment details):`
+    :`🛒 New Order (Cash on Delivery):`;
+  const msg=`${header}\n${itemsList}\nSubtotal: ${subtotal.toFixed(2)} JOD\nTax (16%): ${tax.toFixed(2)} JOD\nTotal: ${total.toFixed(2)} JOD\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\nArea: ${area==='amman'?'Amman':'Outside Amman'}`;
   window.open('https://wa.me/96278607710?text='+encodeURIComponent(msg),'_blank');
-  showToast('Order placed! We will confirm via WhatsApp.');
+  showToast(isCliq?'Order placed! We will contact you via WhatsApp to arrange payment.':'Order placed! We will confirm via WhatsApp.');
   cart=[];updateCartUI();closeCheckout();
 }
 
@@ -1125,7 +1175,6 @@ async function saveOrder(order){
       delivery_fee: order.delivery,
       total: order.total,
       payment_method: order.payment,
-      paypal_id: order.paypal_id || null,
       status: order.status,
       created_at: new Date().toISOString()
     }]);
@@ -1295,7 +1344,7 @@ const T = {
     'Common Questions':'الأسئلة الشائعة','How to Shop With Us':'كيف تتسوق معنا','How do I pay?':'كيف أدفع؟','Do you accept returns or exchanges?':'هل تقبلون الإرجاع أو الاستبدال؟',
     'Do you deliver outside Amman?':'هل توصلون خارج عمّان؟','Are all products authentic?':'هل جميع المنتجات أصلية؟','Are your nail polishes halal certified?':'هل طلاءات أظافركم معتمدة حلال؟',
     'How long does delivery take?':'كم يستغرق التوصيل؟','What are your opening hours?':'ما هي ساعات عملكم؟','Can I order via WhatsApp?':'هل يمكنني الطلب عبر الواتساب؟',
-    'You can pay online via PayPal or card, or choose Cash on Delivery at checkout.':'يمكنك الدفع عبر الإنترنت باستخدام PayPal أو البطاقة، أو اختيار الدفع عند الاستلام عند إتمام الشراء.',
+    'You can pay instantly via CliQ, or choose Cash on Delivery at checkout.':'يمكنك الدفع فوراً عبر كليك، أو اختيار الدفع عند الاستلام عند إتمام الشراء.',
     'Yes, we deliver across Jordan. Reach out via WhatsApp for delivery details.':'نعم، نوصل إلى جميع أنحاء الأردن. تواصل معنا عبر الواتساب لتفاصيل التوصيل.',
     'Absolutely. We are authorized retailers for all brands we carry — Bourjois, Max Factor, Essence, Maybelline, ArtDeco, and Pastel.':'بالتأكيد. نحن موزعون معتمدون لكل الماركات لدينا — بورجوا، ماكس فاكتور، إسنس، مايبيلين، آرت ديكو، وباستيل.',
     'Monday–Thursday and Saturday–Sunday: 10 AM – 2 PM and 4 – 8 PM. Closed on Fridays.':'الاثنين–الخميس والسبت–الأحد: 10 صباحاً – 2 ظهراً و 4 – 8 مساءً. مغلق أيام الجمعة.',
@@ -1308,8 +1357,11 @@ const T = {
     'Your Cart':'سلتك','Your cart is empty':'سلتك فارغة','Subtotal':'المجموع الفرعي','Total':'المجموع','Proceed to Checkout':'المتابعة للدفع','Remove':'إزالة','Cart':'السلة',
     // Checkout
     'Checkout':'الدفع','Delivery Details':'تفاصيل التوصيل','Delivery Area':'منطقة التوصيل','Amman':'عمّان','Outside Amman':'خارج عمّان','Full Address':'العنوان الكامل',
-    'Payment Method':'طريقة الدفع','Cash on Delivery':'الدفع عند الاستلام','PayPal / Card':'PayPal / بطاقة','Pay when your order arrives':'ادفع عند وصول الطلب',
-    'Pay securely with PayPal, Visa, or Mastercard':'ادفع بأمان عبر PayPal أو Visa أو Mastercard','Delivery fees will be confirmed after order':'سيتم تأكيد رسوم التوصيل بعد الطلب',
+    'Payment Method':'طريقة الدفع','Cash on Delivery':'الدفع عند الاستلام','CliQ':'كليك','Pay when your order arrives':'ادفع عند وصول الطلب',
+    'Pay instantly via CliQ, confirm on WhatsApp':'ادفع فوراً عبر كليك، وأكّد عبر الواتساب','CliQ Transfer Instructions':'تعليمات التحويل عبر كليك',
+    'Alias:':'الاسم:','Amount:':'المبلغ:','Confirm Order via WhatsApp':'أكّد الطلب عبر الواتساب',
+    'Transfer via any Jordanian banking app, then click below to confirm your order via WhatsApp with the transaction reference.':'حوّل عبر أي تطبيق بنكي أردني، ثم اضغط أدناه لتأكيد طلبك عبر الواتساب مع رقم العملية.',
+    'Delivery fees will be confirmed after order':'سيتم تأكيد رسوم التوصيل بعد الطلب',
     'Notes (optional)':'ملاحظات (اختياري)',
     // Auth
     'Sign In':'تسجيل الدخول','Sign in':'تسجيل الدخول','Welcome Back':'أهلاً بعودتك','Welcome':'أهلاً بك','Create Account':'إنشاء حساب','Password':'كلمة المرور',
