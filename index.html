@@ -160,8 +160,37 @@ html[dir="rtl"] .hero-scroll{right:auto;left:2.5rem}
 .coll-makeup .coll-img{background:linear-gradient(160deg,#1a1318 0%,#2a1a20 40%,#1a1015 100%)}
 .coll-accessories .coll-img{background:linear-gradient(160deg,#14171a 0%,#1a2228 40%,#10151a 100%)}
 
-/* SHOP */
-.shop-cats{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem}
+/* User dropdown menu */
+.user-dropdown{position:absolute;top:calc(100% + .5rem);right:0;background:var(--surface);border:1px solid rgba(184,149,106,.25);min-width:180px;padding:.4rem 0;display:none;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.user-dropdown.open{display:block}
+.user-dropdown button{display:block;width:100%;background:transparent;border:none;color:var(--text);text-align:left;padding:.7rem 1.2rem;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:all .2s}
+.user-dropdown button:hover{background:rgba(184,149,106,.08);color:var(--gold)}
+
+/* Account modals (profile + purchases) */
+.account-overlay{position:fixed;inset:0;background:rgba(6,5,4,.88);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:400;padding:1.5rem}
+.account-overlay.open{display:flex}
+.account-box{background:var(--surface);border:1px solid rgba(184,149,106,.2);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;padding:2rem}
+.account-close{float:right;background:transparent;border:none;color:var(--dim);font-size:1.4rem;cursor:pointer;padding:0}
+.account-close:hover{color:var(--gold)}
+.account-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold);font-weight:300;margin-bottom:.3rem}
+.account-sub{font-size:.7rem;color:var(--dim);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.5rem}
+.account-field{margin-bottom:1rem}
+.account-field label{display:block;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:.35rem}
+.account-field input{width:100%;background:var(--bg);border:1px solid rgba(184,149,106,.2);color:var(--text);padding:.7rem .9rem;font-family:inherit;font-size:.9rem}
+.account-field input:focus{outline:none;border-color:var(--gold)}
+.account-save{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.7rem 1.4rem;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;font-family:inherit;margin-top:1rem;transition:all .2s}
+.account-save:hover{background:rgba(184,149,106,.1)}
+.purchase-item{border:1px solid rgba(184,149,106,.15);padding:1rem;margin-bottom:.8rem}
+.purchase-head{display:flex;justify-content:space-between;font-size:.75rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem}
+.purchase-items{font-size:.85rem;color:var(--muted);line-height:1.6}
+.purchase-total{margin-top:.6rem;padding-top:.6rem;border-top:1px dashed rgba(184,149,106,.15);color:var(--gold);font-weight:500}
+.purchase-status{display:inline-block;padding:.2rem .5rem;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;border:1px solid;margin-left:.5rem}
+.purchase-status.pending{color:#d4a944;border-color:#d4a944}
+.purchase-status.awaiting_payment{color:#c96b6b;border-color:#c96b6b}
+.purchase-status.confirmed{color:#7fbf7f;border-color:#7fbf7f}
+.purchase-status.delivered{color:var(--muted);border-color:var(--dim)}
+.purchase-status.cancelled{color:var(--dim);border-color:var(--dim);text-decoration:line-through}
+.purchases-empty{text-align:center;padding:3rem 1rem;color:var(--dim);font-size:.9rem}
 .shop-cat{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;padding:.7rem 1.5rem;border:1px solid rgba(184,149,106,.25);color:var(--dim);background:transparent;transition:all .3s;font-family:inherit;cursor:pointer}
 .shop-cat:hover,.shop-cat.active{color:var(--gold);border-color:var(--gold);background:rgba(184,149,106,.08)}
 .shop-filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2.5rem}
@@ -442,7 +471,19 @@ html[dir="rtl"] .nav-links a{text-align:right}
   </ul>
   <div class="nav-right">
     <button class="nav-lang" id="langToggleBtn" onclick="toggleLang(this)">العربية</button>
-    <button class="nav-lang" onclick="openLogin()" style="border-color:rgba(184,149,106,.35);color:var(--gold2)">Login</button>
+    <div id="navUserSlot" style="display:inline-block">
+      <button class="nav-lang" id="navLoginBtn" onclick="openLogin()" style="border-color:rgba(184,149,106,.35);color:var(--gold2)">Login</button>
+      <div id="navUserMenu" style="display:none;position:relative">
+        <button class="nav-lang" id="navUserBtn" onclick="toggleUserMenu(event)" style="border-color:rgba(184,149,106,.35);color:var(--gold2)">
+          <span id="navUserLabel">Account</span> ▾
+        </button>
+        <div id="userDropdown" class="user-dropdown">
+          <button onclick="openProfile()">My Profile</button>
+          <button onclick="openPurchases()">Past Purchases</button>
+          <button onclick="handleSignOut()">Sign Out</button>
+        </div>
+      </div>
+    </div>
     <button class="nav-cart" onclick="openCart()">🛒 <span class="cart-count" id="cartCount">0</span></button>
     <button class="hamburger" onclick="toggleNav()" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
@@ -1239,6 +1280,7 @@ async function handleSignIn(){
       return showErr('Sign-in failed. Please try again.');
     }
     showToast('Welcome back!');closeLogin();
+    refreshAuthUI();
   }catch(ex){
     console.error('Sign-in error:',ex);
     showErr(cleanErrMsg(ex, 'Network error. Please check your connection and try again.'));
@@ -1261,8 +1303,12 @@ async function handleSignUp(){
     if(res && res.error){
       return showErr(cleanErrMsg(res.error, 'Unable to create account. Please try again.'));
     }
-    showToast('Account created! Check your email to confirm.');
-    showSignIn();
+    if(res && res.data && res.data.session){
+      showToast('Welcome to Celestia!');closeLogin();refreshAuthUI();
+    } else {
+      showToast('Account created! Check your email to confirm.');
+      showSignIn();
+    }
   }catch(ex){
     console.error('Sign-up error:',ex);
     showErr(cleanErrMsg(ex, 'Network error. Please check your connection and try again.'));
@@ -1365,6 +1411,10 @@ const T = {
     'Notes (optional)':'ملاحظات (اختياري)',
     // Auth
     'Sign In':'تسجيل الدخول','Sign in':'تسجيل الدخول','Welcome Back':'أهلاً بعودتك','Welcome':'أهلاً بك','Create Account':'إنشاء حساب','Password':'كلمة المرور',
+    'My Profile':'حسابي','Past Purchases':'مشترياتي السابقة','Sign Out':'تسجيل الخروج','Account':'الحساب','Save Changes':'حفظ التغييرات',
+    'Full Name':'الاسم الكامل','Default Address':'العنوان الافتراضي','Your order history':'سجل طلباتك',
+    'No past orders yet.':'لا توجد طلبات سابقة بعد.','Loading…':'جارٍ التحميل…',
+    'Add your phone number in your profile to see past orders.':'أضف رقم هاتفك في حسابك لعرض طلباتك السابقة.',
     'Forgot Password':'نسيت كلمة المرور','Forgot password?':'نسيت كلمة المرور؟','Send Reset Link':'إرسال رابط إعادة التعيين','Reset':'إعادة التعيين',
     'Already have an account?':'هل لديك حساب؟','Create one':'أنشئ حساباً',"Don't have an account?":"ليس لديك حساب؟",
     '← Back to Sign In':'← العودة لتسجيل الدخول',
@@ -1446,6 +1496,127 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 function openLogin(){document.getElementById('loginModal').classList.add('open');document.body.style.overflow='hidden'}
 function closeLogin(){document.getElementById('loginModal').classList.remove('open');document.body.style.overflow=''}
+
+// === USER MENU / AUTH STATE ===
+let currentUser = null;
+
+async function refreshAuthUI(){
+  if(!sb){return}
+  const {data:{session}} = await sb.auth.getSession();
+  currentUser = session ? session.user : null;
+  const loginBtn = document.getElementById('navLoginBtn');
+  const userMenu = document.getElementById('navUserMenu');
+  if(currentUser){
+    loginBtn.style.display='none';
+    userMenu.style.display='inline-block';
+    const meta = currentUser.user_metadata || {};
+    const label = meta.name ? meta.name.split(' ')[0] : (currentUser.email || 'Account').split('@')[0];
+    document.getElementById('navUserLabel').textContent = label;
+  } else {
+    loginBtn.style.display='inline-block';
+    userMenu.style.display='none';
+  }
+}
+
+function toggleUserMenu(e){
+  e.stopPropagation();
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const dd = document.getElementById('userDropdown');
+  if(dd && !dd.contains(e.target) && e.target.id!=='navUserBtn' && !e.target.closest('#navUserBtn')){
+    dd.classList.remove('open');
+  }
+});
+
+async function handleSignOut(){
+  if(!sb)return;
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('userDropdown').classList.remove('open');
+  refreshAuthUI();
+  showToast('Signed out.');
+}
+
+// === PROFILE ===
+async function openProfile(){
+  document.getElementById('userDropdown').classList.remove('open');
+  if(!currentUser){openLogin();return}
+  document.getElementById('profileEmail').textContent = currentUser.email || '';
+  const meta = currentUser.user_metadata || {};
+  document.getElementById('profileName').value = meta.name || '';
+  document.getElementById('profilePhone').value = meta.phone || '';
+  document.getElementById('profileAddress').value = meta.address || '';
+  document.getElementById('profileModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeProfile(){document.getElementById('profileModal').classList.remove('open');document.body.style.overflow=''}
+
+async function saveProfile(){
+  if(!sb||!currentUser)return;
+  const name = document.getElementById('profileName').value.trim();
+  const phone = document.getElementById('profilePhone').value.trim();
+  const address = document.getElementById('profileAddress').value.trim();
+  const {data,error} = await sb.auth.updateUser({data:{name,phone,address}});
+  if(error){showToast('Save failed: '+error.message);return}
+  currentUser = data.user;
+  refreshAuthUI();
+  showToast('Profile saved.');
+  closeProfile();
+}
+
+// === PAST PURCHASES ===
+async function openPurchases(){
+  document.getElementById('userDropdown').classList.remove('open');
+  if(!currentUser){openLogin();return}
+  document.getElementById('purchasesModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.getElementById('purchasesList').innerHTML='<div class="purchases-empty">Loading…</div>';
+  // Match orders by customer_name OR phone from the profile
+  const meta = currentUser.user_metadata || {};
+  const phone = meta.phone || '';
+  const email = currentUser.email || '';
+  // Try email first (if orders table has it), else phone, else customer_name
+  let query = sb.from('orders').select('*').order('created_at',{ascending:false}).limit(50);
+  if(phone){
+    query = query.eq('phone', phone);
+  } else if(meta.name){
+    query = query.eq('customer_name', meta.name);
+  } else {
+    document.getElementById('purchasesList').innerHTML='<div class="purchases-empty">Add your phone number in your profile to see past orders.</div>';
+    return;
+  }
+  const {data,error} = await query;
+  if(error){
+    document.getElementById('purchasesList').innerHTML=`<div class="purchases-empty">Could not load orders: ${error.message}</div>`;
+    return;
+  }
+  if(!data||!data.length){
+    document.getElementById('purchasesList').innerHTML='<div class="purchases-empty">No past orders yet.</div>';
+    return;
+  }
+  document.getElementById('purchasesList').innerHTML = data.map(o=>{
+    let items=[];
+    try{items = typeof o.items==='string' ? JSON.parse(o.items) : (o.items||[])}catch(e){}
+    const itemsHtml = items.map(i=>`• ${i.name}${i.color?' ('+i.color+')':''} ×${i.qty}`).join('<br>');
+    const date = o.created_at ? new Date(o.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '';
+    const status = o.status || 'pending';
+    return `<div class="purchase-item">
+      <div class="purchase-head">
+        <span>Order #${o.id} · ${date}</span>
+        <span class="purchase-status ${status}">${status.replace('_',' ')}</span>
+      </div>
+      <div class="purchase-items">${itemsHtml||'—'}</div>
+      <div class="purchase-total">Total: ${(+o.total||0).toFixed(2)} JOD</div>
+    </div>`;
+  }).join('');
+}
+function closePurchases(){document.getElementById('purchasesModal').classList.remove('open');document.body.style.overflow=''}
+
+// Initial auth state check
+refreshAuthUI();
+// Also listen for auth state changes (e.g. session expiry)
+if(sb){sb.auth.onAuthStateChange(()=>refreshAuthUI())}
 document.getElementById('loginModal').addEventListener('click',function(e){if(e.target===this)closeLogin()})
 
 // Hero video cycling — mobile-safe
@@ -1493,5 +1664,37 @@ window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scr
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')})},{threshold:.08,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 </script>
+<!-- PROFILE MODAL -->
+<div class="account-overlay" id="profileModal" onclick="if(event.target===this)closeProfile()">
+  <div class="account-box">
+    <button class="account-close" onclick="closeProfile()">✕</button>
+    <div class="account-title">My Profile</div>
+    <div class="account-sub" id="profileEmail">—</div>
+    <div class="account-field">
+      <label>Full Name</label>
+      <input type="text" id="profileName" placeholder="Your name">
+    </div>
+    <div class="account-field">
+      <label>Phone</label>
+      <input type="tel" id="profilePhone" placeholder="07 xxxx xxxx">
+    </div>
+    <div class="account-field">
+      <label>Default Address</label>
+      <input type="text" id="profileAddress" placeholder="Street, building, floor, apartment">
+    </div>
+    <button class="account-save" onclick="saveProfile()">Save Changes</button>
+  </div>
+</div>
+
+<!-- PURCHASES MODAL -->
+<div class="account-overlay" id="purchasesModal" onclick="if(event.target===this)closePurchases()">
+  <div class="account-box">
+    <button class="account-close" onclick="closePurchases()">✕</button>
+    <div class="account-title">Past Purchases</div>
+    <div class="account-sub" id="purchasesSub">Your order history</div>
+    <div id="purchasesList"><div class="purchases-empty">Loading…</div></div>
+  </div>
+</div>
+
 </body>
 </html>
