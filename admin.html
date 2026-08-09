@@ -409,7 +409,20 @@ function filterProductsByCat(cat,btn){
   renderProducts();
 }
 
-function renderProducts(){
+async function getVariantCountsFor(productIds){
+  const result = {};
+  if(!productIds || !productIds.length) return result;
+  const {data,error} = await sb.from('product_variants').select('product_id,quantity').in('product_id',productIds);
+  if(error || !data) return result;
+  data.forEach(v=>{
+    if(!result[v.product_id]) result[v.product_id] = {count:0,total:0};
+    result[v.product_id].count++;
+    result[v.product_id].total += (+v.quantity||0);
+  });
+  return result;
+}
+
+async function renderProducts(){
   const q=document.getElementById('productSearch').value.trim().toLowerCase();
   let filtered=currentProductCat==='all'?allProducts:allProducts.filter(p=>p.category===currentProductCat);
   if(q){filtered=filtered.filter(p=>(p.name_en||'').toLowerCase().includes(q)||(p.name_ar||'').includes(q)||(p.brand||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q))}
