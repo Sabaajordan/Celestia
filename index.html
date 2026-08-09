@@ -518,9 +518,9 @@ html[dir="rtl"] .nav-links a{text-align:right}
 <section class="sect" id="collections">
   <div class="sect-header reveal"><div class="sect-label">Collections</div><div class="sect-title">Our Collections</div></div>
   <div class="coll-scroll">
-    <div onclick="openCollPage('bags','Bags','Clutches, totes & evening bags — coming soon')" class="coll-card coll-bags reveal"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Coming Soon</div><h3>Bags</h3><p>Clutches, totes & evening bags</p><div class="coll-link">Browse →</div></div></div>
+    <div onclick="openCollPage('bags','Bags','Clutches, totes & evening bags')" class="coll-card coll-bags reveal"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">New Items</div><h3>Bags</h3><p>Clutches, totes & evening bags</p><div class="coll-link">Browse →</div></div></div>
     <div onclick="openCollPage('makeup','Make-up','Premium cosmetics from top brands')" class="coll-card coll-makeup reveal reveal-d1"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Available Now</div><h3>Make-up</h3><p>Premium cosmetics</p><div class="coll-link">Browse →</div></div></div>
-    <div onclick="openCollPage('accessories','Accessories','Jewelry, hair accessories & statement pieces — coming soon')" class="coll-card coll-accessories reveal reveal-d2"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Unique Pieces</div><h3>Accessories</h3><p>Jewelry, hair & more</p><div class="coll-link">Browse →</div></div></div>
+    <div onclick="openCollPage('accessories','Accessories','Jewelry, hair accessories & statement pieces')" class="coll-card coll-accessories reveal reveal-d2"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">New Items</div><h3>Accessories</h3><p>Jewelry, hair & more</p><div class="coll-link">Browse →</div></div></div>
   </div>
 </section>
 
@@ -842,9 +842,11 @@ function openCollPage(cat,title,desc){
   document.getElementById('collPageDesc').textContent=desc;
   const grid=document.getElementById('collPageGrid');
   let filtered=[];
-  if(cat==='makeup') filtered=products;
+  if(cat==='makeup') filtered=products.filter(p=>p.category==='cosmetics'||p.category==='skincare');
+  else if(cat==='bags') filtered=products.filter(p=>p.category==='bags');
+  else if(cat==='accessories') filtered=products.filter(p=>p.category==='accessories');
   if(!filtered.length){
-    grid.innerHTML='<div class="coll-empty">Coming soon — stay tuned for our latest arrivals.</div>';
+    grid.innerHTML='<div class="coll-empty">New items arriving soon — stay tuned.</div>';
   } else {
     grid.innerHTML=filtered.map(p=>{
       const ch=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
