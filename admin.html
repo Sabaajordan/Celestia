@@ -100,6 +100,13 @@ tr:hover{background:rgba(184,149,106,.04)}
 .detail-item{padding:.5rem 0;font-size:.8rem;color:var(--muted);border-bottom:1px dashed rgba(184,149,106,.08)}
 .wa-link{display:inline-block;padding:.55rem 1.2rem;background:#25d366;color:#fff;text-decoration:none;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;border:none;cursor:pointer}
 .wa-link:hover{opacity:.9}
+.variant-row{display:grid;grid-template-columns:40px 1fr 90px 90px 90px auto;gap:.5rem;align-items:center;padding:.6rem 0;border-bottom:1px solid rgba(184,149,106,.1)}
+.variant-row input{background:var(--bg);border:1px solid var(--gold-line);color:var(--text);padding:.4rem .55rem;font-size:.8rem;font-family:inherit}
+.variant-row input:focus{outline:none;border-color:var(--gold)}
+.variant-swatch-preview{width:32px;height:32px;border-radius:50%;border:1px solid var(--gold-line);background:#c4a882}
+.variant-add-row{padding:1rem 0;text-align:center}
+.variant-empty{padding:2rem 0;text-align:center;color:var(--dim);font-size:.85rem}
+@media(max-width:640px){.variant-row{grid-template-columns:32px 1fr 70px auto;gap:.35rem}.variant-hide-mobile{display:none}}
 .toast{position:fixed;bottom:2rem;right:2rem;background:var(--panel);border:1px solid var(--gold);color:var(--text);padding:1rem 1.4rem;font-size:.8rem;z-index:1000;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.error{border-color:var(--red);color:var(--red)}
@@ -206,6 +213,10 @@ tr:hover{background:rgba(184,149,106,.04)}
       <button class="primary" onclick="saveProduct()" id="productSaveBtn">Save Product</button>
     </div>
   </div>
+</div>
+
+<div class="overlay" id="variantsOverlay" onclick="if(event.target===this)closeVariants()">
+  <div class="modal" id="variantsBox"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -379,16 +390,23 @@ function renderProducts(){
   let filtered=currentProductCat==='all'?allProducts:allProducts.filter(p=>p.category===currentProductCat);
   if(q){filtered=filtered.filter(p=>(p.name_en||'').toLowerCase().includes(q)||(p.name_ar||'').includes(q)||(p.brand||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q))}
   if(!filtered.length){document.getElementById('productsContainer').innerHTML='<div class="empty-state">No products match.</div>';return}
+  // Fetch variants counts once per render
+  const variantCounts = await getVariantCountsFor(filtered.map(p=>p.id));
   const rows=filtered.map(p=>{
-    const q=+p.quantity||0;
-    const qtyClass=q===0?'qty-out':(q<=3?'qty-low':'');
+    const vc = variantCounts[p.id];
+    const hasVariants = vc && vc.count > 0;
+    const displayQty = hasVariants ? vc.total : (+p.quantity||0);
+    const qtyClass=displayQty===0?'qty-out':(displayQty<=3?'qty-low':'');
+    const stockCell = hasVariants
+      ? `<span class="${qtyClass}" style="font-weight:500">${displayQty}</span> <span style="font-size:.7rem;color:var(--dim)">across ${vc.count} variants</span>`
+      : `<div class="qty-cell"><button class="qty-btn" onclick="bumpQty(${p.id},-1)">−</button><input type="number" class="qty-input ${qtyClass}" value="${displayQty}" onchange="quickUpdate(${p.id},'quantity',this.value)"><button class="qty-btn" onclick="bumpQty(${p.id},1)">+</button></div>`;
     return `<tr>
       <td>${p.image?`<img class="prod-thumb" src="${escapeHtml(p.image)}" alt="" onerror="this.style.display='none'">`:''}</td>
-      <td><div style="font-weight:500">${escapeHtml(p.name_en||'—')}</div><div style="font-size:.7rem;color:var(--dim)">${escapeHtml(p.sku||'')} · ${escapeHtml(p.brand||'')}</div></td>
+      <td><div style="font-weight:500">${escapeHtml(p.name_en||'—')}${hasVariants?' <span style="font-size:.65rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase">· variants</span>':''}</div><div style="font-size:.7rem;color:var(--dim)">${escapeHtml(p.sku||'')} · ${escapeHtml(p.brand||'')}</div></td>
       <td>${escapeHtml(p.category||'')}</td>
       <td><input type="number" step="0.01" class="price-input" value="${p.price}" onchange="quickUpdate(${p.id},'price',this.value)"></td>
-      <td><div class="qty-cell"><button class="qty-btn" onclick="bumpQty(${p.id},-1)">−</button><input type="number" class="qty-input ${qtyClass}" value="${q}" onchange="quickUpdate(${p.id},'quantity',this.value)"><button class="qty-btn" onclick="bumpQty(${p.id},1)">+</button></div></td>
-      <td class="row-actions"><button class="icon-btn" onclick="editProduct(${p.id})">Edit</button><button class="icon-btn danger" onclick="deleteProduct(${p.id})">Del</button></td>
+      <td>${stockCell}</td>
+      <td class="row-actions"><button class="icon-btn" onclick="openVariants(${p.id})">Variants</button><button class="icon-btn" onclick="editProduct(${p.id})">Edit</button><button class="icon-btn danger" onclick="deleteProduct(${p.id})">Del</button></td>
     </tr>`;
   }).join('');
   document.getElementById('productsContainer').innerHTML=`<table><thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -498,6 +516,106 @@ async function saveProduct(){
 }
 
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+// ===== VARIANTS =====
+let currentVariantProductId = null;
+let currentVariants = [];
+
+async function openVariants(productId){
+  currentVariantProductId = productId;
+  const p = allProducts.find(x=>x.id===productId);
+  if(!p)return;
+  document.getElementById('variantsOverlay').classList.add('open');
+  document.getElementById('variantsBox').innerHTML=`
+    <button class="modal-close" onclick="closeVariants()">✕</button>
+    <div class="modal-title">Variants — ${escapeHtml(p.name_en)}</div>
+    <div class="modal-sub">Each variant tracks its own stock. Leave price blank to use the product's base price (${p.price} JOD).</div>
+    <div id="variantsList"><div class="variant-empty">Loading…</div></div>
+    <div class="variant-add-row"><button class="primary" onclick="addVariantRow()">+ Add Variant</button></div>
+    <div class="form-actions">
+      <button onclick="closeVariants()">Done</button>
+    </div>
+  `;
+  const {data,error} = await sb.from('product_variants').select('*').eq('product_id',productId).order('sort_order');
+  if(error){
+    document.getElementById('variantsList').innerHTML = `<div class="error">${error.message}<div style="margin-top:.5rem;font-size:.75rem">Have you run <code>variants-setup.sql</code> yet?</div></div>`;
+    return;
+  }
+  currentVariants = data || [];
+  renderVariantsList();
+}
+
+function renderVariantsList(){
+  const list = document.getElementById('variantsList');
+  if(!currentVariants.length){
+    list.innerHTML='<div class="variant-empty">No variants yet. Add one below to enable per-option stock.</div>';
+    return;
+  }
+  list.innerHTML = `
+    <div class="variant-row" style="border-bottom:1px solid var(--gold-line);color:var(--dim);font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;padding-bottom:.4rem">
+      <div></div>
+      <div>Name</div>
+      <div>Price</div>
+      <div>Stock</div>
+      <div class="variant-hide-mobile">Color</div>
+      <div></div>
+    </div>
+    ${currentVariants.map(v=>`
+      <div class="variant-row" data-id="${v.id}">
+        <div class="variant-swatch-preview" style="background:${v.color_hex||'#c4a882'}"></div>
+        <input type="text" value="${escapeHtml(v.name_en||'')}" placeholder="Ruby Red" onchange="updateVariant(${v.id},'name_en',this.value)">
+        <input type="number" step="0.01" value="${v.price_override??''}" placeholder="—" onchange="updateVariant(${v.id},'price_override',this.value===''?null:parseFloat(this.value))">
+        <input type="number" value="${v.quantity||0}" min="0" onchange="updateVariant(${v.id},'quantity',parseInt(this.value)||0)">
+        <input type="text" class="variant-hide-mobile" value="${escapeHtml(v.color_hex||'')}" placeholder="#c4a882" onchange="updateVariant(${v.id},'color_hex',this.value);this.parentElement.querySelector('.variant-swatch-preview').style.background=this.value">
+        <button class="icon-btn danger" onclick="deleteVariant(${v.id})">Del</button>
+      </div>
+    `).join('')}
+  `;
+}
+
+async function updateVariant(id, field, value){
+  const patch = {};
+  patch[field] = value;
+  const {error} = await sb.from('product_variants').update(patch).eq('id',id);
+  if(error){toast('Update failed: '+error.message,true);return}
+  const v = currentVariants.find(x=>x.id===id);
+  if(v) v[field] = value;
+  toast('Variant updated.');
+  loadProducts();
+}
+
+async function addVariantRow(){
+  const name = prompt('Variant name (e.g. "Ruby Red", "Small"):');
+  if(!name || !name.trim()) return;
+  const {data,error} = await sb.from('product_variants').insert({
+    product_id: currentVariantProductId,
+    name_en: name.trim(),
+    quantity: 0,
+    color_hex: '#c4a882',
+    sort_order: currentVariants.length
+  }).select().single();
+  if(error){toast('Add failed: '+error.message,true);return}
+  currentVariants.push(data);
+  renderVariantsList();
+  toast('Variant added.');
+  loadProducts();
+}
+
+async function deleteVariant(id){
+  if(!confirm('Delete this variant? This cannot be undone.'))return;
+  const {error} = await sb.from('product_variants').delete().eq('id',id);
+  if(error){toast('Delete failed: '+error.message,true);return}
+  currentVariants = currentVariants.filter(v=>v.id!==id);
+  renderVariantsList();
+  toast('Variant deleted.');
+  loadProducts();
+}
+
+function closeVariants(){
+  document.getElementById('variantsOverlay').classList.remove('open');
+  currentVariantProductId = null;
+  currentVariants = [];
+}
 
 checkAuth();
 setInterval(()=>{if(document.getElementById('dashboard').style.display!=='none'&&currentTab==='orders'){loadOrders()}},60000);

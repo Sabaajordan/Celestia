@@ -200,6 +200,10 @@ html[dir="rtl"] .hero-scroll{right:auto;left:2.5rem}
 .prod-card{position:relative}
 .sold-out-badge{position:absolute;top:.6rem;right:.6rem;background:rgba(6,5,4,.85);color:var(--gold);font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;padding:.35rem .6rem;border:1px solid var(--gold);z-index:2}
 .low-stock-badge{position:absolute;top:.6rem;right:.6rem;background:rgba(6,5,4,.85);color:#d4a944;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;padding:.35rem .6rem;border:1px solid #d4a944;z-index:2}
+.color-swatch.swatch-sold{position:relative;opacity:.4}
+.color-swatch.swatch-sold::after{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 46%,rgba(255,255,255,.8) 46%,rgba(255,255,255,.8) 54%,transparent 54%);pointer-events:none}
+.user-dropdown button.admin-link{color:var(--gold);border-top:1px solid rgba(184,149,106,.15);margin-top:.3rem;padding-top:.9rem}
+.user-dropdown button.admin-link:hover{background:rgba(184,149,106,.15)}
 .prod-card.sold-out .prod-img{opacity:.6}
 .prod-card.sold-out .add-cart{background:rgba(120,90,60,.15);color:var(--dim);cursor:not-allowed;pointer-events:none}
 .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
@@ -481,6 +485,7 @@ html[dir="rtl"] .nav-links a{text-align:right}
         <div id="userDropdown" class="user-dropdown">
           <button onclick="openProfile()">My Profile</button>
           <button onclick="openPurchases()">Past Purchases</button>
+          <button class="admin-link" id="adminLink" style="display:none" onclick="window.location.href='admin.html'">⚙ Admin Panel</button>
           <button onclick="handleSignOut()">Sign Out</button>
         </div>
       </div>
@@ -777,54 +782,85 @@ function brandLabel(b){
   const map={maxfactor:'Max Factor',bourjois:'Bourjois',essence:'Essence',maybelline:'Maybelline',pastel:'Pastel',garnier:'Garnier',bioderma:'Bioderma',chrisbella:'Chrisbella'};
   return map[b]||b.charAt(0).toUpperCase()+b.slice(1);
 }
+function renderProductCard(p){
+  const firstAvailIdx = p.colors ? p.colors.findIndex(c=>c.quantity>0) : -1;
+  const colorsHtml=p.colors && p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>{
+    const vSoldOut = c.quantity===0;
+    const isSelected = i===firstAvailIdx || (firstAvailIdx===-1 && i===0);
+    return `<div class="color-swatch${isSelected?' selected':''}${vSoldOut?' swatch-sold':''}" style="background:${c.hex||'#ccc'}" data-color="${c.name}" data-img="${c.img||''}" data-variant-id="${c.id||''}" data-qty="${c.quantity??''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}${vSoldOut?' — Sold Out':''}</div></div>`;
+  }).join('')}</div>`:'';
+  const qty = (typeof p.quantity==='number') ? p.quantity : (p.soldOut ? 0 : null);
+  const isSoldOut = qty===0;
+  const isLow = qty!==null && qty>0 && qty<=3;
+  const btnLabel = isSoldOut ? (currentLang==='ar'?'نفدت الكمية':'Sold Out') : (currentLang==='ar' ? '🛒 أضف إلى السلة' : '🛒 Add to Cart');
+  let badge = '';
+  if(isSoldOut){badge = `<div class="sold-out-badge">${currentLang==='ar'?'نفدت':'Sold Out'}</div>`}
+  else if(isLow){badge = `<div class="low-stock-badge">${currentLang==='ar' ? `متبقّي ${qty} فقط` : `Only ${qty} left`}</div>`}
+  const clickAttr=isSoldOut?'':`onclick="openProdModal(${p.id})"`;
+  const addToCartAttr=isSoldOut?'':`onclick="event.stopPropagation();addToCart(${p.id})"`;
+  return `<div class="prod-card${isSoldOut?' sold-out':''}" data-brand="${p.brand}" data-category="${p.category||'cosmetics'}" data-id="${p.id}" ${clickAttr}>
+    ${badge}
+    <div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
+    <div class="prod-brand">${brandLabel(p.brand)}</div>
+    <div class="prod-name">${tProd(p,'name')}</div>
+    <div class="prod-desc">${tProd(p,'desc')}</div>
+    <div class="prod-price">${p.price.toFixed(2)} JOD</div>
+    ${colorsHtml}
+    <button class="add-cart" ${addToCartAttr}>${btnLabel}</button>
+  </div>`;
+}
+
 function renderProducts(){
   const grid=document.getElementById('prodGrid');
   if(!products.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">Loading products…</div>';return}
-  grid.innerHTML=products.map(p=>{
-    const colorsHtml=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
-    const qty = (typeof p.quantity==='number') ? p.quantity : (p.soldOut ? 0 : null);
-    const isSoldOut = qty===0;
-    const isLow = qty!==null && qty>0 && qty<=3;
-    const btnLabel = isSoldOut ? (currentLang==='ar'?'نفدت الكمية':'Sold Out') : (currentLang==='ar' ? '🛒 أضف إلى السلة' : '🛒 Add to Cart');
-    let badge = '';
-    if(isSoldOut){badge = `<div class="sold-out-badge">${currentLang==='ar'?'نفدت':'Sold Out'}</div>`}
-    else if(isLow){badge = `<div class="low-stock-badge">${currentLang==='ar' ? `متبقّي ${qty} فقط` : `Only ${qty} left`}</div>`}
-    const clickAttr=isSoldOut?'':`onclick="openProdModal(${p.id})"`;
-    const addToCartAttr=isSoldOut?'':`onclick="event.stopPropagation();addToCart(${p.id})"`;
-    return `<div class="prod-card${isSoldOut?' sold-out':''}" data-brand="${p.brand}" data-category="${p.category||'cosmetics'}" data-id="${p.id}" ${clickAttr}>
-      ${badge}
-      <div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
-      <div class="prod-brand">${brandLabel(p.brand)}</div>
-      <div class="prod-name">${tProd(p,'name')}</div>
-      <div class="prod-desc">${tProd(p,'desc')}</div>
-      <div class="prod-price">${p.price.toFixed(2)} JOD</div>
-      ${colorsHtml}
-      <button class="add-cart" ${addToCartAttr}>${btnLabel}</button>
-    </div>`;
-  }).join('');
+  grid.innerHTML=products.map(renderProductCard).join('');
 }
 
 // === LOAD PRODUCTS FROM SUPABASE ===
 async function loadProductsFromDB(){
   if(!sb){renderProducts();return}
   try {
-    const {data,error} = await sb.from('products').select('*').eq('active',true).order('category').order('sort_order').order('name_en');
-    if(error){console.error('Product load error:',error);renderProducts();return}
-    // Transform DB shape to shop shape
-    products = (data||[]).map(p=>({
-      id: p.id,
-      name: p.name_en || '',
-      nameAr: p.name_ar || '',
-      desc: p.desc_en || '',
-      descAr: p.desc_ar || '',
-      brand: (p.brand || '').toLowerCase(),
-      category: p.category || 'cosmetics',
-      price: +p.price || 0,
-      quantity: +p.quantity || 0,
-      soldOut: (+p.quantity || 0) === 0,
-      img: p.image || '',
-      colors: []
-    }));
+    const [prodRes, varRes] = await Promise.all([
+      sb.from('products').select('*').eq('active',true).order('category').order('sort_order').order('name_en'),
+      sb.from('product_variants').select('*').order('sort_order').order('id')
+    ]);
+    if(prodRes.error){console.error('Product load error:',prodRes.error);renderProducts();return}
+    const variantsByProduct = {};
+    if(!varRes.error && varRes.data){
+      varRes.data.forEach(v=>{
+        (variantsByProduct[v.product_id] = variantsByProduct[v.product_id] || []).push(v);
+      });
+    }
+    products = (prodRes.data||[]).map(p=>{
+      const variants = variantsByProduct[p.id] || [];
+      const totalVariantQty = variants.reduce((s,v)=>s+(+v.quantity||0),0);
+      const hasVariants = variants.length > 0;
+      const effectiveQty = hasVariants ? totalVariantQty : (+p.quantity || 0);
+      return {
+        id: p.id,
+        name: p.name_en || '',
+        nameAr: p.name_ar || '',
+        desc: p.desc_en || '',
+        descAr: p.desc_ar || '',
+        brand: (p.brand || '').toLowerCase(),
+        category: p.category || 'cosmetics',
+        price: +p.price || 0,
+        quantity: effectiveQty,
+        soldOut: effectiveQty === 0,
+        img: p.image || '',
+        colors: variants.map(v=>({
+          id: v.id,
+          name: v.name_en || '',
+          nameAr: v.name_ar || '',
+          hex: v.color_hex || '#c4a882',
+          img: v.image || '',
+          price: (v.price_override === null || v.price_override === undefined) ? (+p.price||0) : (+v.price_override),
+          quantity: +v.quantity || 0,
+          soldOut: (+v.quantity || 0) === 0
+        })),
+        hasVariants
+      };
+    });
     renderProducts();
   } catch(e){
     console.error('Load failed:',e);
@@ -848,11 +884,7 @@ function openCollPage(cat,title,desc){
   if(!filtered.length){
     grid.innerHTML='<div class="coll-empty">New items arriving soon — stay tuned.</div>';
   } else {
-    grid.innerHTML=filtered.map(p=>{
-      const ch=p.colors.length?`<div class="prod-colors">${p.colors.map((c,i)=>`<div class="color-swatch${i===0?' selected':''}" style="background:${c.hex}" data-color="${c.name}" data-img="${c.img||''}" onclick="selectColor(event,${p.id})"><div class="swatch-tip">${c.name}</div></div>`).join('')}</div>`:'';
-      const btnLabel = currentLang==='ar' ? 'أضف إلى السلة' : 'Add to Cart';
-      return `<div class="prod-card" data-brand="${p.brand}" data-id="${p.id}" onclick="openProdModal(${p.id})"><div class="prod-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div><div class="prod-brand">${p.brand}</div><div class="prod-name">${tProd(p,'name')}</div><div class="prod-desc">${tProd(p,'desc')}</div>${ch}<div class="prod-price">${p.price.toFixed(2)} JOD</div><button class="add-cart" onclick="event.stopPropagation();addToCart(${p.id})">${btnLabel}</button></div>`;
-    }).join('');
+    grid.innerHTML=filtered.map(renderProductCard).join('');
   }
   document.getElementById('collPage').classList.add('open');
   document.body.style.overflow='hidden';
@@ -996,9 +1028,13 @@ function closeProdModal(){
 
 function selectColor(e,pid){
   e.stopPropagation();
+  const swatch=e.target.closest('.color-swatch');
+  if(swatch.classList.contains('swatch-sold')){
+    showToast(currentLang==='ar' ? 'هذا الخيار نافد الكمية' : 'This option is sold out');
+    return;
+  }
   const card=e.target.closest('.prod-card');
   card.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
-  const swatch=e.target.closest('.color-swatch');
   swatch.classList.add('selected');
   const colorImg=swatch.dataset.img;
   if(colorImg){
@@ -1049,16 +1085,36 @@ function addToCart(pid){
   const card=document.querySelector(`.prod-card[data-id="${pid}"]`);
   const selected=card?.querySelector('.color-swatch.selected');
   const color=selected?selected.dataset.color:'';
-  const key=pid+'-'+color;
-  const existing=cart.find(x=>x.key===key);
-  const currentInCart = existing ? existing.qty : 0;
-  // Enforce stock limit
-  if(typeof p.quantity === 'number' && currentInCart + 1 > p.quantity){
-    showToast(currentLang==='ar' ? `الكمية المتوفرة: ${p.quantity} فقط` : `Only ${p.quantity} available`);
-    return;
+  const variantId = selected?selected.dataset.variantId:'';
+  // If product has variants, one must be selected AND in stock
+  if(p.hasVariants){
+    const variant = p.colors.find(c=>String(c.id)===String(variantId)) || p.colors[0];
+    if(!variant){showToast('Please select an option');return}
+    if(variant.quantity === 0){
+      showToast(currentLang==='ar' ? 'هذا الخيار نافد الكمية' : 'This option is sold out');
+      return;
+    }
+    const key=pid+'-'+variant.id;
+    const existing=cart.find(x=>x.key===key);
+    const currentInCart = existing ? existing.qty : 0;
+    if(currentInCart + 1 > variant.quantity){
+      showToast(currentLang==='ar' ? `الكمية المتوفرة: ${variant.quantity} فقط` : `Only ${variant.quantity} available`);
+      return;
+    }
+    const price = variant.price || p.price;
+    if(existing){existing.qty++}
+    else{cart.push({key,id:pid,variantId:variant.id,name:p.name+' — '+variant.name,brand:p.brand,price,img:variant.img||p.img,color:variant.name,qty:1})}
+  } else {
+    const key=pid+'-'+color;
+    const existing=cart.find(x=>x.key===key);
+    const currentInCart = existing ? existing.qty : 0;
+    if(typeof p.quantity === 'number' && currentInCart + 1 > p.quantity){
+      showToast(currentLang==='ar' ? `الكمية المتوفرة: ${p.quantity} فقط` : `Only ${p.quantity} available`);
+      return;
+    }
+    if(existing){existing.qty++}
+    else{cart.push({key,id:pid,name:p.name,brand:p.brand,price:p.price,img:p.img,color,qty:1})}
   }
-  if(existing){existing.qty++}
-  else{cart.push({key,id:pid,name:p.name,brand:p.brand,price:p.price,img:p.img,color,qty:1})}
   updateCartUI();
   const btn=card.querySelector('.add-cart');
   btn.classList.add('added');btn.innerHTML='✓ Added';
@@ -1166,14 +1222,29 @@ function placeOrder(){
 async function decrementStockForOrder(orderedItems){
   if(!sb || !orderedItems || !orderedItems.length) return;
   for(const item of orderedItems){
-    const p = products.find(x=>x.id===item.id);
-    if(!p || typeof p.quantity !== 'number') continue;
-    const newQty = Math.max(0, p.quantity - item.qty);
-    try {
-      await sb.from('products').update({quantity:newQty}).eq('id',item.id);
-      p.quantity = newQty;
-      p.soldOut = newQty === 0;
-    } catch(e){ /* ignore — Rana can adjust manually */ }
+    if(item.variantId){
+      // Variant order — decrement the variant, not the product
+      const p = products.find(x=>x.id===item.id);
+      const v = p ? p.colors.find(c=>c.id===item.variantId) : null;
+      if(!v) continue;
+      const newQty = Math.max(0, v.quantity - item.qty);
+      try {
+        await sb.from('product_variants').update({quantity:newQty}).eq('id',item.variantId);
+        v.quantity = newQty;
+        // Recompute product-level total
+        p.quantity = p.colors.reduce((s,c)=>s+(+c.quantity||0),0);
+        p.soldOut = p.quantity === 0;
+      } catch(e){}
+    } else {
+      const p = products.find(x=>x.id===item.id);
+      if(!p || typeof p.quantity !== 'number') continue;
+      const newQty = Math.max(0, p.quantity - item.qty);
+      try {
+        await sb.from('products').update({quantity:newQty}).eq('id',item.id);
+        p.quantity = newQty;
+        p.soldOut = newQty === 0;
+      } catch(e){}
+    }
   }
 }
 
@@ -1477,6 +1548,7 @@ function closeLogin(){document.getElementById('loginModal').classList.remove('op
 
 // === USER MENU / AUTH STATE ===
 let currentUser = null;
+const ADMIN_EMAILS = ['celestia.jor@gmail.com'];
 
 async function refreshAuthUI(){
   if(!sb){return}
@@ -1484,15 +1556,22 @@ async function refreshAuthUI(){
   currentUser = session ? session.user : null;
   const loginBtn = document.getElementById('navLoginBtn');
   const userMenu = document.getElementById('navUserMenu');
+  const adminLink = document.getElementById('adminLink');
   if(currentUser){
     loginBtn.style.display='none';
     userMenu.style.display='inline-block';
     const meta = currentUser.user_metadata || {};
     const label = meta.name ? meta.name.split(' ')[0] : (currentUser.email || 'Account').split('@')[0];
     document.getElementById('navUserLabel').textContent = label;
+    // Show admin link if user is an admin
+    if(adminLink){
+      const isAdmin = ADMIN_EMAILS.includes((currentUser.email||'').toLowerCase());
+      adminLink.style.display = isAdmin ? 'block' : 'none';
+    }
   } else {
     loginBtn.style.display='inline-block';
     userMenu.style.display='none';
+    if(adminLink) adminLink.style.display='none';
   }
 }
 
