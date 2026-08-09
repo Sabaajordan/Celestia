@@ -4,36 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Celestia — Admin Orders</title>
+<title>Celestia — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0e0b08;--surface:#171310;--panel:#1e1913;--text:#e8dfd2;--muted:#b8a894;--dim:#7a6a58;
-  --gold:#b8956a;--gold-soft:rgba(184,149,106,.15);--gold-line:rgba(184,149,106,.25);
-  --red:#c96b6b;--green:#7fbf7f;--yellow:#d4a944;
-}
+:root{--bg:#0e0b08;--surface:#171310;--panel:#1e1913;--text:#e8dfd2;--muted:#b8a894;--dim:#7a6a58;--gold:#b8956a;--gold-soft:rgba(184,149,106,.15);--gold-line:rgba(184,149,106,.25);--red:#c96b6b;--green:#7fbf7f;--yellow:#d4a944}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:2rem 1rem}
 h1{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:2.4rem;color:var(--gold);letter-spacing:.02em}
 .container{max-width:1400px;margin:0 auto}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
 .header-info{font-size:.75rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem}
 .actions{display:flex;gap:.6rem;flex-wrap:wrap}
 button{background:transparent;border:1px solid var(--gold-line);color:var(--muted);padding:.55rem 1.2rem;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;font-family:inherit}
 button:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-soft)}
 button.primary{border-color:var(--gold);color:var(--gold)}
+button.danger{border-color:var(--red);color:var(--red)}
+button.danger:hover{background:rgba(201,107,107,.1)}
+.tabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:1px solid var(--gold-line)}
+.tab{padding:.9rem 1.6rem;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;transition:all .2s;margin-bottom:-1px}
+.tab:hover{color:var(--muted)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
 .stat{background:var(--panel);border:1px solid var(--gold-line);padding:1.2rem 1.4rem}
 .stat-label{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:.4rem}
 .stat-value{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold);font-weight:400}
-.filters{display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.stat.warning .stat-value{color:var(--yellow)}
+.stat.danger .stat-value{color:var(--red)}
+.filters{display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap;align-items:center}
 .filter-btn{padding:.5rem 1rem;font-size:.65rem}
 .filter-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-soft)}
-.orders-table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--gold-line)}
-.orders-table th{background:rgba(184,149,106,.08);color:var(--gold);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;padding:1rem;text-align:left;font-weight:500;border-bottom:1px solid var(--gold-line)}
-.orders-table td{padding:1rem;font-size:.85rem;color:var(--text);border-bottom:1px solid rgba(184,149,106,.08);vertical-align:top}
-.orders-table tr:hover{background:rgba(184,149,106,.04);cursor:pointer}
+.search-input{flex:1;min-width:220px;max-width:400px;background:var(--panel);border:1px solid var(--gold-line);color:var(--text);padding:.55rem .9rem;font-size:.85rem;font-family:inherit}
+.search-input:focus{outline:none;border-color:var(--gold)}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--gold-line)}
+th{background:rgba(184,149,106,.08);color:var(--gold);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;padding:.9rem;text-align:left;font-weight:500;border-bottom:1px solid var(--gold-line);white-space:nowrap}
+td{padding:.9rem;font-size:.85rem;color:var(--text);border-bottom:1px solid rgba(184,149,106,.08);vertical-align:middle}
+tr:hover{background:rgba(184,149,106,.04)}
 .status-badge{display:inline-block;padding:.25rem .6rem;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;border:1px solid;border-radius:2px}
 .status-pending{color:var(--yellow);border-color:var(--yellow)}
 .status-awaiting_payment{color:var(--red);border-color:var(--red)}
@@ -45,8 +53,20 @@ button.primary{border-color:var(--gold);color:var(--gold)}
 .items-preview{font-size:.75rem;color:var(--muted);max-width:280px}
 .empty-state{text-align:center;padding:4rem 1rem;color:var(--dim)}
 .error{color:var(--red);padding:1rem;background:rgba(201,107,107,.08);border:1px solid rgba(201,107,107,.3);margin-bottom:1rem}
-
-/* Login gate */
+.prod-thumb{width:48px;height:48px;object-fit:cover;background:var(--bg);border:1px solid var(--gold-line)}
+.qty-input{width:70px;background:var(--bg);border:1px solid var(--gold-line);color:var(--text);padding:.35rem .5rem;font-family:inherit;font-size:.85rem;text-align:center}
+.qty-input:focus{outline:none;border-color:var(--gold)}
+.qty-cell{display:flex;align-items:center;gap:.4rem}
+.qty-btn{background:var(--panel);border:1px solid var(--gold-line);color:var(--muted);width:26px;height:26px;padding:0;font-size:.9rem;cursor:pointer;line-height:1}
+.qty-btn:hover{border-color:var(--gold);color:var(--gold)}
+.qty-low{color:var(--yellow);font-weight:500}
+.qty-out{color:var(--red);font-weight:500}
+.price-input{width:90px;background:var(--bg);border:1px solid var(--gold-line);color:var(--text);padding:.35rem .5rem;font-family:inherit;font-size:.85rem;text-align:right}
+.price-input:focus{outline:none;border-color:var(--gold)}
+.row-actions{display:flex;gap:.4rem;justify-content:flex-end}
+.icon-btn{background:transparent;border:1px solid var(--gold-line);color:var(--muted);padding:.35rem .6rem;font-size:.7rem;cursor:pointer;font-family:inherit}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
 .login-gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
 .login-box{background:var(--panel);border:1px solid var(--gold-line);padding:2.5rem 2rem;max-width:400px;width:90%}
 .login-box h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold);font-weight:300;margin-bottom:.4rem}
@@ -54,39 +74,44 @@ button.primary{border-color:var(--gold);color:var(--gold)}
 .login-box input{width:100%;background:var(--bg);border:1px solid var(--gold-line);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.9rem;margin-bottom:1rem}
 .login-box input:focus{outline:none;border-color:var(--gold)}
 .login-box button{width:100%;padding:.9rem}
-
-/* Order detail modal */
-.detail-overlay{position:fixed;inset:0;background:rgba(6,5,4,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}
-.detail-overlay.open{display:flex}
-.detail-box{background:var(--panel);border:1px solid var(--gold-line);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;padding:2rem}
-.detail-close{float:right;background:transparent;border:none;color:var(--dim);font-size:1.4rem;cursor:pointer;padding:0}
-.detail-close:hover{color:var(--gold)}
-.detail-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold);font-weight:300;margin-bottom:.2rem}
-.detail-sub{font-size:.75rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem}
+.overlay{position:fixed;inset:0;background:rgba(6,5,4,.85);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:2rem 1rem;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--gold-line);max-width:720px;width:100%;padding:2rem;max-height:calc(100vh - 4rem);overflow-y:auto}
+.modal-close{float:right;background:transparent;border:none;color:var(--dim);font-size:1.4rem;cursor:pointer;padding:0}
+.modal-close:hover{color:var(--gold)}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:var(--gold);font-weight:300;margin-bottom:.2rem}
+.modal-sub{font-size:.7rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.8rem}
+.field{margin-bottom:1rem}
+.field.wide{grid-column:1/-1}
+.field label{display:block;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:.35rem}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--gold-line);color:var(--text);padding:.65rem .85rem;font-family:inherit;font-size:.9rem}
+.field textarea{resize:vertical;min-height:60px}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--gold)}
+.field-hint{font-size:.7rem;color:var(--dim);margin-top:.3rem}
+.image-preview{width:120px;height:120px;background:var(--bg);border:1px solid var(--gold-line);object-fit:cover;display:block;margin-bottom:.6rem}
+.upload-btn{display:inline-block;padding:.5rem 1rem;background:transparent;border:1px solid var(--gold-line);color:var(--muted);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.upload-btn:hover{border-color:var(--gold);color:var(--gold)}
+.upload-input{display:none}
+.form-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(184,149,106,.15)}
 .detail-row{display:grid;grid-template-columns:130px 1fr;gap:1rem;padding:.6rem 0;border-bottom:1px solid rgba(184,149,106,.08);font-size:.85rem}
 .detail-row .k{color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-size:.7rem;padding-top:.15rem}
 .detail-row .v{color:var(--text)}
-.detail-items{margin-top:1rem}
 .detail-item{padding:.5rem 0;font-size:.8rem;color:var(--muted);border-bottom:1px dashed rgba(184,149,106,.08)}
-.detail-actions{display:flex;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap}
 .wa-link{display:inline-block;padding:.55rem 1.2rem;background:#25d366;color:#fff;text-decoration:none;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;border:none;cursor:pointer}
 .wa-link:hover{opacity:.9}
-
-@media(max-width:768px){
-  .orders-table{font-size:.75rem}
-  .orders-table th,.orders-table td{padding:.6rem .5rem}
-  .items-preview{max-width:150px}
-  h1{font-size:1.8rem}
-}
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--panel);border:1px solid var(--gold);color:var(--text);padding:1rem 1.4rem;font-size:.8rem;z-index:1000;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{border-color:var(--red);color:var(--red)}
+@media(max-width:768px){table{font-size:.75rem}th,td{padding:.55rem .5rem}.items-preview{max-width:150px}h1{font-size:1.8rem}.form-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<!-- LOGIN GATE -->
 <div class="login-gate" id="loginGate">
   <div class="login-box">
     <h2>Celestia Admin</h2>
-    <p>Sign in to view orders.</p>
+    <p>Sign in to manage orders and products.</p>
     <div id="loginError" class="error" style="display:none"></div>
     <input type="email" id="loginEmail" placeholder="Email" autocomplete="username">
     <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
@@ -94,127 +119,184 @@ button.primary{border-color:var(--gold);color:var(--gold)}
   </div>
 </div>
 
-<!-- MAIN DASHBOARD -->
 <div class="container" id="dashboard" style="display:none">
   <div class="header">
     <div>
-      <h1>Orders</h1>
+      <h1>Celestia Admin</h1>
       <div class="header-info" id="lastUpdated">—</div>
     </div>
     <div class="actions">
-      <button onclick="loadOrders()">↻ Refresh</button>
       <button onclick="doLogout()">Sign Out</button>
     </div>
   </div>
 
-  <div class="stats" id="stats"></div>
-
-  <div class="filters" id="filters">
-    <button class="filter-btn active" data-status="all" onclick="filterStatus('all',this)">All</button>
-    <button class="filter-btn" data-status="pending" onclick="filterStatus('pending',this)">Pending</button>
-    <button class="filter-btn" data-status="awaiting_payment" onclick="filterStatus('awaiting_payment',this)">Awaiting Payment</button>
-    <button class="filter-btn" data-status="confirmed" onclick="filterStatus('confirmed',this)">Confirmed</button>
-    <button class="filter-btn" data-status="delivered" onclick="filterStatus('delivered',this)">Delivered</button>
-    <button class="filter-btn" data-status="cancelled" onclick="filterStatus('cancelled',this)">Cancelled</button>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('orders',this)">Orders</button>
+    <button class="tab" onclick="switchTab('products',this)">Products</button>
   </div>
 
-  <div id="ordersContainer">
-    <div class="empty-state">Loading orders…</div>
+  <div id="orders-panel" class="tab-panel active">
+    <div class="stats" id="orderStats"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-status="all" onclick="filterOrders('all',this)">All</button>
+      <button class="filter-btn" data-status="pending" onclick="filterOrders('pending',this)">Pending</button>
+      <button class="filter-btn" data-status="awaiting_payment" onclick="filterOrders('awaiting_payment',this)">Awaiting Payment</button>
+      <button class="filter-btn" data-status="confirmed" onclick="filterOrders('confirmed',this)">Confirmed</button>
+      <button class="filter-btn" data-status="delivered" onclick="filterOrders('delivered',this)">Delivered</button>
+      <button class="filter-btn" data-status="cancelled" onclick="filterOrders('cancelled',this)">Cancelled</button>
+      <button style="margin-left:auto" onclick="loadOrders()">↻ Refresh</button>
+    </div>
+    <div id="ordersContainer"><div class="empty-state">Loading orders…</div></div>
+  </div>
+
+  <div id="products-panel" class="tab-panel">
+    <div class="stats" id="productStats"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-cat="all" onclick="filterProductsByCat('all',this)">All</button>
+      <button class="filter-btn" data-cat="cosmetics" onclick="filterProductsByCat('cosmetics',this)">Cosmetics</button>
+      <button class="filter-btn" data-cat="skincare" onclick="filterProductsByCat('skincare',this)">Skincare</button>
+      <button class="filter-btn" data-cat="bags" onclick="filterProductsByCat('bags',this)">Bags</button>
+      <input type="text" class="search-input" id="productSearch" placeholder="Search by name, brand, SKU…" oninput="renderProducts()">
+      <button onclick="loadProducts()">↻ Refresh</button>
+      <button class="primary" onclick="openProductForm()">+ Add Product</button>
+    </div>
+    <div id="productsContainer"><div class="empty-state">Loading products…</div></div>
   </div>
 </div>
 
-<!-- ORDER DETAIL MODAL -->
-<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
-  <div class="detail-box" id="detailBox"></div>
+<div class="overlay" id="orderDetailOverlay" onclick="if(event.target===this)closeOrderDetail()">
+  <div class="modal" id="orderDetailBox"></div>
 </div>
+
+<div class="overlay" id="productFormOverlay" onclick="if(event.target===this)closeProductForm()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeProductForm()">✕</button>
+    <div class="modal-title" id="productFormTitle">New Product</div>
+    <div class="modal-sub" id="productFormSub">Add a new item to the catalog</div>
+    <input type="hidden" id="productId">
+    <div class="field wide">
+      <label>Image</label>
+      <img id="productImagePreview" class="image-preview" src="" alt="" style="display:none">
+      <label class="upload-btn">
+        <input type="file" class="upload-input" id="productImageInput" accept="image/*" onchange="handleImageUpload(event)">
+        Choose Image
+      </label>
+      <span id="productImageStatus" style="margin-left:.6rem;font-size:.75rem;color:var(--dim)"></span>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>SKU</label><input type="text" id="productSku" placeholder="e.g. P0123"></div>
+      <div class="field"><label>Category</label>
+        <select id="productCategory">
+          <option value="cosmetics">Cosmetics</option>
+          <option value="skincare">Skincare</option>
+          <option value="bags">Bags</option>
+        </select>
+      </div>
+      <div class="field"><label>Name (English)</label><input type="text" id="productNameEn" placeholder="Product name"></div>
+      <div class="field"><label>Name (Arabic)</label><input type="text" id="productNameAr" placeholder="اسم المنتج" dir="rtl"></div>
+      <div class="field wide"><label>Description (English)</label><textarea id="productDescEn" placeholder="Short description"></textarea></div>
+      <div class="field wide"><label>Description (Arabic)</label><textarea id="productDescAr" placeholder="وصف قصير" dir="rtl"></textarea></div>
+      <div class="field"><label>Brand</label><input type="text" id="productBrand" placeholder="e.g. bourjois, chrisbella"><div class="field-hint">lowercase, no spaces (used for filter)</div></div>
+      <div class="field"><label>Price (JOD)</label><input type="number" step="0.01" id="productPrice" placeholder="0.00"></div>
+      <div class="field"><label>Quantity in Stock</label><input type="number" id="productQuantity" placeholder="0"></div>
+      <div class="field"><label>Sort Order</label><input type="number" id="productSortOrder" placeholder="0"><div class="field-hint">lower = shown first</div></div>
+    </div>
+    <div class="form-actions">
+      <button onclick="closeProductForm()">Cancel</button>
+      <button class="primary" onclick="saveProduct()" id="productSaveBtn">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const SUPABASE_URL = 'https://hbhrbdvwtbquskdgohem.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiaHJiZHZ3dGJxdXNrZGdvaGVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNTE2NjUsImV4cCI6MjA5ODkyNzY2NX0.4RwwQmG4hdO8U4FB6doVvWyMtatG9RpEi3OSfRGe-js';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let allOrders = [];
-let currentStatusFilter = 'all';
+let allOrders=[], allProducts=[];
+let currentOrderFilter='all', currentProductCat='all', currentTab='orders';
+let editingProductId=null, pendingImageUrl=null;
 
-// === AUTH ===
+function toast(msg,isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(isErr?' error':'');
+  setTimeout(()=>t.className='toast'+(isErr?' error':''),3000);
+}
+
 async function checkAuth(){
-  const {data:{session}} = await sb.auth.getSession();
+  const {data:{session}}=await sb.auth.getSession();
   if(session){
     document.getElementById('loginGate').style.display='none';
     document.getElementById('dashboard').style.display='block';
-    loadOrders();
+    loadOrders(); loadProducts();
   }
 }
 
 async function doLogin(){
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errBox = document.getElementById('loginError');
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const errBox=document.getElementById('loginError');
   errBox.style.display='none';
   if(!email||!password){errBox.textContent='Enter email and password.';errBox.style.display='block';return}
-  const {error} = await sb.auth.signInWithPassword({email,password});
+  const {error}=await sb.auth.signInWithPassword({email,password});
   if(error){errBox.textContent=error.message;errBox.style.display='block';return}
   checkAuth();
 }
 
-async function doLogout(){
-  await sb.auth.signOut();
-  location.reload();
+async function doLogout(){await sb.auth.signOut();location.reload()}
+
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+function switchTab(name,btn){
+  currentTab=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(name+'-panel').classList.add('active');
 }
 
-document.getElementById('loginPassword').addEventListener('keydown',e=>{
-  if(e.key==='Enter')doLogin();
-});
-
-// === LOAD ORDERS ===
+// ===== ORDERS =====
 async function loadOrders(){
   document.getElementById('ordersContainer').innerHTML='<div class="empty-state">Loading orders…</div>';
-  const {data,error} = await sb.from('orders').select('*').order('created_at',{ascending:false});
-  if(error){
-    document.getElementById('ordersContainer').innerHTML=`<div class="error">${error.message}</div>`;
-    return;
-  }
-  allOrders = data || [];
-  document.getElementById('lastUpdated').textContent = `Last updated ${new Date().toLocaleString('en-GB')}  ·  ${allOrders.length} total`;
-  renderStats();
-  renderOrders();
+  const {data,error}=await sb.from('orders').select('*').order('created_at',{ascending:false});
+  if(error){document.getElementById('ordersContainer').innerHTML=`<div class="error">${error.message}</div>`;return}
+  allOrders=data||[];
+  document.getElementById('lastUpdated').textContent=`Last updated ${new Date().toLocaleString('en-GB')}`;
+  renderOrderStats(); renderOrders();
 }
 
-function renderStats(){
-  const pending = allOrders.filter(o=>o.status==='pending').length;
-  const awaiting = allOrders.filter(o=>o.status==='awaiting_payment').length;
-  const confirmed = allOrders.filter(o=>o.status==='confirmed').length;
-  const revenue = allOrders.filter(o=>['confirmed','delivered'].includes(o.status)).reduce((s,o)=>s+(+o.total||0),0);
-  document.getElementById('stats').innerHTML=`
+function renderOrderStats(){
+  const pending=allOrders.filter(o=>o.status==='pending').length;
+  const awaiting=allOrders.filter(o=>o.status==='awaiting_payment').length;
+  const confirmed=allOrders.filter(o=>o.status==='confirmed').length;
+  const revenue=allOrders.filter(o=>['confirmed','delivered'].includes(o.status)).reduce((s,o)=>s+(+o.total||0),0);
+  document.getElementById('orderStats').innerHTML=`
     <div class="stat"><div class="stat-label">Pending</div><div class="stat-value">${pending}</div></div>
     <div class="stat"><div class="stat-label">Awaiting Payment</div><div class="stat-value">${awaiting}</div></div>
     <div class="stat"><div class="stat-label">Confirmed</div><div class="stat-value">${confirmed}</div></div>
-    <div class="stat"><div class="stat-label">Revenue (JOD)</div><div class="stat-value">${revenue.toFixed(2)}</div></div>
-  `;
+    <div class="stat"><div class="stat-label">Revenue (JOD)</div><div class="stat-value">${revenue.toFixed(2)}</div></div>`;
 }
 
-function filterStatus(status,btn){
-  currentStatusFilter = status;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+function filterOrders(status,btn){
+  currentOrderFilter=status;
+  document.querySelectorAll('#orders-panel .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderOrders();
 }
 
 function renderOrders(){
-  const filtered = currentStatusFilter==='all' ? allOrders : allOrders.filter(o=>o.status===currentStatusFilter);
-  if(!filtered.length){
-    document.getElementById('ordersContainer').innerHTML='<div class="empty-state">No orders match this filter.</div>';
-    return;
-  }
-  const rows = filtered.map(o=>{
-    let items = [];
-    try{ items = typeof o.items==='string' ? JSON.parse(o.items) : (o.items||[]); }catch(e){}
-    const preview = items.map(i=>`${i.name}${i.color?' ('+i.color+')':''} ×${i.qty}`).join(', ');
-    const date = o.created_at ? new Date(o.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-    const pay = o.payment_method==='cliq' ? 'CliQ' : 'COD';
-    return `<tr onclick='openDetail(${o.id})'>
-      <td>#${o.id}</td>
-      <td>${date}</td>
+  const filtered=currentOrderFilter==='all'?allOrders:allOrders.filter(o=>o.status===currentOrderFilter);
+  if(!filtered.length){document.getElementById('ordersContainer').innerHTML='<div class="empty-state">No orders match this filter.</div>';return}
+  const rows=filtered.map(o=>{
+    let items=[];try{items=typeof o.items==='string'?JSON.parse(o.items):(o.items||[])}catch(e){}
+    const preview=items.map(i=>`${i.name}${i.color?' ('+i.color+')':''} ×${i.qty}`).join(', ');
+    const date=o.created_at?new Date(o.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+    const pay=o.payment_method==='cliq'?'CliQ':'COD';
+    return `<tr onclick='openOrderDetail(${o.id})' style="cursor:pointer">
+      <td>#${o.id}</td><td>${date}</td>
       <td>${escapeHtml(o.customer_name||'—')}<br><span style="font-size:.7rem;color:var(--dim)">${escapeHtml(o.phone||'')}</span></td>
       <td class="items-preview">${escapeHtml(preview)}</td>
       <td class="total-cell">${(+o.total||0).toFixed(2)}</td>
@@ -222,29 +304,20 @@ function renderOrders(){
       <td><span class="status-badge status-${o.status||'pending'}">${(o.status||'pending').replace('_',' ')}</span></td>
     </tr>`;
   }).join('');
-  document.getElementById('ordersContainer').innerHTML=`
-    <table class="orders-table">
-      <thead><tr>
-        <th>#</th><th>Date</th><th>Customer</th><th>Items</th><th>Total (JOD)</th><th>Pay</th><th>Status</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
+  document.getElementById('ordersContainer').innerHTML=`<table><thead><tr><th>#</th><th>Date</th><th>Customer</th><th>Items</th><th>Total (JOD)</th><th>Pay</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
-function openDetail(id){
-  const o = allOrders.find(x=>x.id===id);
-  if(!o)return;
-  let items=[];
-  try{ items = typeof o.items==='string' ? JSON.parse(o.items) : (o.items||[]); }catch(e){}
-  const itemsHtml = items.map(i=>`<div class="detail-item">${escapeHtml(i.name)}${i.color?' ('+escapeHtml(i.color)+')':''}  ×${i.qty}  —  ${(i.price*i.qty).toFixed(2)} JOD</div>`).join('');
-  const phone = (o.phone||'').replace(/\D/g,'');
-  const waPhone = phone.startsWith('962') ? phone : '962'+phone.replace(/^0/,'');
-  const date = o.created_at ? new Date(o.created_at).toLocaleString('en-GB') : '—';
-  document.getElementById('detailBox').innerHTML=`
-    <button class="detail-close" onclick="closeDetail()">✕</button>
-    <div class="detail-title">Order #${o.id}</div>
-    <div class="detail-sub">${date}  ·  <span class="status-badge status-${o.status||'pending'}">${(o.status||'pending').replace('_',' ')}</span></div>
+function openOrderDetail(id){
+  const o=allOrders.find(x=>x.id===id);if(!o)return;
+  let items=[];try{items=typeof o.items==='string'?JSON.parse(o.items):(o.items||[])}catch(e){}
+  const itemsHtml=items.map(i=>`<div class="detail-item">${escapeHtml(i.name)}${i.color?' ('+escapeHtml(i.color)+')':''}  ×${i.qty}  —  ${(i.price*i.qty).toFixed(2)} JOD</div>`).join('');
+  const phone=(o.phone||'').replace(/\D/g,'');
+  const waPhone=phone.startsWith('962')?phone:'962'+phone.replace(/^0/,'');
+  const date=o.created_at?new Date(o.created_at).toLocaleString('en-GB'):'—';
+  document.getElementById('orderDetailBox').innerHTML=`
+    <button class="modal-close" onclick="closeOrderDetail()">✕</button>
+    <div class="modal-title">Order #${o.id}</div>
+    <div class="modal-sub">${date}  ·  <span class="status-badge status-${o.status||'pending'}">${(o.status||'pending').replace('_',' ')}</span></div>
     <div class="detail-row"><div class="k">Customer</div><div class="v">${escapeHtml(o.customer_name||'—')}</div></div>
     <div class="detail-row"><div class="k">Phone</div><div class="v">${escapeHtml(o.phone||'—')}</div></div>
     <div class="detail-row"><div class="k">Address</div><div class="v">${escapeHtml(o.address||'—')}</div></div>
@@ -253,42 +326,181 @@ function openDetail(id){
     <div class="detail-row"><div class="k">Subtotal</div><div class="v">${(+o.subtotal||0).toFixed(2)} JOD</div></div>
     <div class="detail-row"><div class="k">Tax (16%)</div><div class="v">${(+o.tax||0).toFixed(2)} JOD</div></div>
     <div class="detail-row"><div class="k">Total</div><div class="v" style="color:var(--gold);font-weight:500">${(+o.total||0).toFixed(2)} JOD</div></div>
-    <div class="detail-items">
-      <div class="detail-sub" style="margin-top:1.2rem">Items</div>
-      ${itemsHtml||'<div class="detail-item">—</div>'}
-    </div>
-    <div class="detail-actions">
+    <div style="margin-top:1rem"><div class="modal-sub">Items</div>${itemsHtml||'<div class="detail-item">—</div>'}</div>
+    <div class="form-actions" style="justify-content:flex-start;flex-wrap:wrap">
       <a class="wa-link" href="https://wa.me/${waPhone}" target="_blank">💬 Message Customer</a>
-      <button onclick="updateStatus(${o.id},'confirmed')">Mark Confirmed</button>
-      <button onclick="updateStatus(${o.id},'delivered')">Mark Delivered</button>
-      <button onclick="updateStatus(${o.id},'cancelled')">Cancel</button>
-    </div>
-  `;
-  document.getElementById('detailOverlay').classList.add('open');
+      <button onclick="updateOrderStatus(${o.id},'confirmed')">Mark Confirmed</button>
+      <button onclick="updateOrderStatus(${o.id},'delivered')">Mark Delivered</button>
+      <button class="danger" onclick="updateOrderStatus(${o.id},'cancelled')">Cancel</button>
+    </div>`;
+  document.getElementById('orderDetailOverlay').classList.add('open');
+}
+function closeOrderDetail(){document.getElementById('orderDetailOverlay').classList.remove('open')}
+
+async function updateOrderStatus(id,status){
+  const {error}=await sb.from('orders').update({status}).eq('id',id);
+  if(error){toast('Update failed: '+error.message,true);return}
+  closeOrderDetail(); loadOrders(); toast('Order updated.');
 }
 
-function closeDetail(){
-  document.getElementById('detailOverlay').classList.remove('open');
+// ===== PRODUCTS =====
+async function loadProducts(){
+  document.getElementById('productsContainer').innerHTML='<div class="empty-state">Loading products…</div>';
+  const {data,error}=await sb.from('products').select('*').order('category').order('sort_order').order('name_en');
+  if(error){
+    document.getElementById('productsContainer').innerHTML=`<div class="error">${error.message}<div style="margin-top:.5rem;font-size:.75rem">Have you run <code>products-setup.sql</code> in Supabase yet?</div></div>`;
+    return;
+  }
+  allProducts=data||[];
+  renderProductStats(); renderProducts();
 }
 
-async function updateStatus(id, status){
-  const {error} = await sb.from('orders').update({status}).eq('id',id);
-  if(error){alert('Update failed: '+error.message);return}
-  closeDetail();
-  loadOrders();
+function renderProductStats(){
+  const total=allProducts.length;
+  const outOfStock=allProducts.filter(p=>(+p.quantity||0)===0).length;
+  const lowStock=allProducts.filter(p=>{const q=+p.quantity||0;return q>0&&q<=3}).length;
+  const totalValue=allProducts.reduce((s,p)=>s+((+p.price||0)*(+p.quantity||0)),0);
+  document.getElementById('productStats').innerHTML=`
+    <div class="stat"><div class="stat-label">Total Products</div><div class="stat-value">${total}</div></div>
+    <div class="stat warning"><div class="stat-label">Low Stock (≤3)</div><div class="stat-value">${lowStock}</div></div>
+    <div class="stat danger"><div class="stat-label">Out of Stock</div><div class="stat-value">${outOfStock}</div></div>
+    <div class="stat"><div class="stat-label">Inventory Value (JOD)</div><div class="stat-value">${totalValue.toFixed(2)}</div></div>`;
 }
 
-function escapeHtml(s){
-  return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function filterProductsByCat(cat,btn){
+  currentProductCat=cat;
+  document.querySelectorAll('#products-panel .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts();
 }
 
-// Init
+function renderProducts(){
+  const q=document.getElementById('productSearch').value.trim().toLowerCase();
+  let filtered=currentProductCat==='all'?allProducts:allProducts.filter(p=>p.category===currentProductCat);
+  if(q){filtered=filtered.filter(p=>(p.name_en||'').toLowerCase().includes(q)||(p.name_ar||'').includes(q)||(p.brand||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q))}
+  if(!filtered.length){document.getElementById('productsContainer').innerHTML='<div class="empty-state">No products match.</div>';return}
+  const rows=filtered.map(p=>{
+    const q=+p.quantity||0;
+    const qtyClass=q===0?'qty-out':(q<=3?'qty-low':'');
+    return `<tr>
+      <td>${p.image?`<img class="prod-thumb" src="${escapeHtml(p.image)}" alt="" onerror="this.style.display='none'">`:''}</td>
+      <td><div style="font-weight:500">${escapeHtml(p.name_en||'—')}</div><div style="font-size:.7rem;color:var(--dim)">${escapeHtml(p.sku||'')} · ${escapeHtml(p.brand||'')}</div></td>
+      <td>${escapeHtml(p.category||'')}</td>
+      <td><input type="number" step="0.01" class="price-input" value="${p.price}" onchange="quickUpdate(${p.id},'price',this.value)"></td>
+      <td><div class="qty-cell"><button class="qty-btn" onclick="bumpQty(${p.id},-1)">−</button><input type="number" class="qty-input ${qtyClass}" value="${q}" onchange="quickUpdate(${p.id},'quantity',this.value)"><button class="qty-btn" onclick="bumpQty(${p.id},1)">+</button></div></td>
+      <td class="row-actions"><button class="icon-btn" onclick="editProduct(${p.id})">Edit</button><button class="icon-btn danger" onclick="deleteProduct(${p.id})">Del</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('productsContainer').innerHTML=`<table><thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function bumpQty(id,delta){
+  const p=allProducts.find(x=>x.id===id);if(!p)return;
+  const newQty=Math.max(0,(+p.quantity||0)+delta);
+  await quickUpdate(id,'quantity',newQty);
+}
+
+async function quickUpdate(id,field,value){
+  const patch={};
+  patch[field]=field==='quantity'?Math.max(0,parseInt(value)||0):parseFloat(value)||0;
+  const {error}=await sb.from('products').update(patch).eq('id',id);
+  if(error){toast('Update failed: '+error.message,true);return}
+  const p=allProducts.find(x=>x.id===id);
+  if(p){p[field]=patch[field]}
+  renderProductStats(); renderProducts();
+  toast(`${field==='quantity'?'Stock':'Price'} updated.`);
+}
+
+async function deleteProduct(id){
+  const p=allProducts.find(x=>x.id===id);if(!p)return;
+  if(!confirm(`Delete "${p.name_en}"? This cannot be undone.`))return;
+  const {error}=await sb.from('products').delete().eq('id',id);
+  if(error){toast('Delete failed: '+error.message,true);return}
+  toast('Product deleted.'); loadProducts();
+}
+
+function openProductForm(){
+  editingProductId=null; pendingImageUrl=null;
+  document.getElementById('productFormTitle').textContent='New Product';
+  document.getElementById('productFormSub').textContent='Add a new item to the catalog';
+  ['productId','productSku','productNameEn','productNameAr','productDescEn','productDescAr','productBrand','productPrice','productQuantity'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('productCategory').value='cosmetics';
+  document.getElementById('productSortOrder').value='0';
+  document.getElementById('productImagePreview').style.display='none';
+  document.getElementById('productImagePreview').src='';
+  document.getElementById('productImageStatus').textContent='';
+  document.getElementById('productFormOverlay').classList.add('open');
+}
+
+function editProduct(id){
+  const p=allProducts.find(x=>x.id===id);if(!p)return;
+  editingProductId=id; pendingImageUrl=p.image;
+  document.getElementById('productFormTitle').textContent='Edit Product';
+  document.getElementById('productFormSub').textContent=p.sku||'';
+  document.getElementById('productId').value=id;
+  document.getElementById('productSku').value=p.sku||'';
+  document.getElementById('productCategory').value=p.category||'cosmetics';
+  document.getElementById('productNameEn').value=p.name_en||'';
+  document.getElementById('productNameAr').value=p.name_ar||'';
+  document.getElementById('productDescEn').value=p.desc_en||'';
+  document.getElementById('productDescAr').value=p.desc_ar||'';
+  document.getElementById('productBrand').value=p.brand||'';
+  document.getElementById('productPrice').value=p.price;
+  document.getElementById('productQuantity').value=p.quantity;
+  document.getElementById('productSortOrder').value=p.sort_order||0;
+  if(p.image){const img=document.getElementById('productImagePreview');img.src=p.image;img.style.display='block'}
+  else{document.getElementById('productImagePreview').style.display='none'}
+  document.getElementById('productImageStatus').textContent='';
+  document.getElementById('productFormOverlay').classList.add('open');
+}
+
+function closeProductForm(){document.getElementById('productFormOverlay').classList.remove('open')}
+
+async function handleImageUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  const statusEl=document.getElementById('productImageStatus');
+  statusEl.textContent='Uploading…'; statusEl.style.color='var(--dim)';
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+  const fname=`product-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const {error}=await sb.storage.from('product-images').upload(fname,file,{cacheControl:'3600',upsert:false});
+  if(error){statusEl.textContent='Upload failed: '+error.message;statusEl.style.color='var(--red)';return}
+  const {data:{publicUrl}}=sb.storage.from('product-images').getPublicUrl(fname);
+  pendingImageUrl=publicUrl;
+  const img=document.getElementById('productImagePreview');
+  img.src=publicUrl; img.style.display='block';
+  statusEl.textContent='Uploaded ✓'; statusEl.style.color='var(--green)';
+}
+
+async function saveProduct(){
+  const payload={
+    sku:document.getElementById('productSku').value.trim()||null,
+    category:document.getElementById('productCategory').value,
+    name_en:document.getElementById('productNameEn').value.trim(),
+    name_ar:document.getElementById('productNameAr').value.trim()||null,
+    desc_en:document.getElementById('productDescEn').value.trim()||null,
+    desc_ar:document.getElementById('productDescAr').value.trim()||null,
+    brand:document.getElementById('productBrand').value.trim()||null,
+    price:parseFloat(document.getElementById('productPrice').value)||0,
+    quantity:Math.max(0,parseInt(document.getElementById('productQuantity').value)||0),
+    sort_order:parseInt(document.getElementById('productSortOrder').value)||0,
+    image:pendingImageUrl||null,
+    active:true
+  };
+  if(!payload.name_en){toast('Name (English) is required.',true);return}
+  document.getElementById('productSaveBtn').disabled=true;
+  let result;
+  if(editingProductId){result=await sb.from('products').update(payload).eq('id',editingProductId)}
+  else{result=await sb.from('products').insert(payload)}
+  document.getElementById('productSaveBtn').disabled=false;
+  if(result.error){toast('Save failed: '+result.error.message,true);return}
+  toast(editingProductId?'Product updated.':'Product added.');
+  closeProductForm(); loadProducts();
+}
+
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
 checkAuth();
-
-// Auto-refresh every 60s while dashboard is open
-setInterval(()=>{
-  if(document.getElementById('dashboard').style.display!=='none'){loadOrders()}
-},60000);
+setInterval(()=>{if(document.getElementById('dashboard').style.display!=='none'&&currentTab==='orders'){loadOrders()}},60000);
 </script>
 </body>
 </html>
