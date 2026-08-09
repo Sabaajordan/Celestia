@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
 <title>Celestia — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -252,14 +254,36 @@ async function doLogin(){
   const errBox=document.getElementById('loginError');
   errBox.style.display='none';
   if(!email||!password){errBox.textContent='Enter email and password.';errBox.style.display='block';return}
-  const {error}=await sb.auth.signInWithPassword({email,password});
-  if(error){errBox.textContent=error.message;errBox.style.display='block';return}
-  checkAuth();
+  const btn = document.querySelector('.login-box button');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try {
+    const {error}=await sb.auth.signInWithPassword({email,password});
+    if(error){
+      errBox.textContent=error.message||'Sign in failed. Check your email and password.';
+      errBox.style.display='block';
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      return;
+    }
+    await checkAuth();
+    // If checkAuth didn't hide the gate, reset button
+    if(document.getElementById('loginGate').style.display!=='none'){
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  } catch(e){
+    errBox.textContent = 'Sign in failed: '+(e.message||e);
+    errBox.style.display='block';
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
 }
 
 async function doLogout(){await sb.auth.signOut();location.reload()}
 
 document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 
 function switchTab(name,btn){
   currentTab=name;
