@@ -142,6 +142,7 @@ tr:hover{background:rgba(184,149,106,.04)}
   <div class="tabs">
     <button class="tab active" onclick="switchTab('orders',this)">Orders</button>
     <button class="tab" onclick="switchTab('products',this)">Products</button>
+    <button class="tab" onclick="switchTab('messages',this)">Messages <span id="unreadBadge" style="display:none;background:var(--gold);color:var(--bg);border-radius:10px;padding:.1rem .5rem;font-size:.6rem;margin-left:.3rem"></span></button>
   </div>
 
   <div id="orders-panel" class="tab-panel active">
@@ -170,6 +171,17 @@ tr:hover{background:rgba(184,149,106,.04)}
       <button class="primary" onclick="openProductForm()">+ Add Product</button>
     </div>
     <div id="productsContainer"><div class="empty-state">Loading products…</div></div>
+  </div>
+
+  <div id="messages-panel" class="tab-panel">
+    <div class="stats" id="messageStats"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-status="all" onclick="filterMessages('all',this)">All</button>
+      <button class="filter-btn" data-status="unread" onclick="filterMessages('unread',this)">Unread</button>
+      <button class="filter-btn" data-status="read" onclick="filterMessages('read',this)">Read</button>
+      <button style="margin-left:auto" onclick="loadMessages()">↻ Refresh</button>
+    </div>
+    <div id="messagesContainer"><div class="empty-state">Loading messages…</div></div>
   </div>
 </div>
 
@@ -244,7 +256,7 @@ async function checkAuth(){
   if(session){
     document.getElementById('loginGate').style.display='none';
     document.getElementById('dashboard').style.display='block';
-    loadOrders(); loadProducts();
+    loadOrders(); loadProducts(); loadMessages();
   }
 }
 
@@ -654,8 +666,96 @@ function closeVariants(){
   currentVariants = [];
 }
 
+// ===== MESSAGES =====
+let allMessages=[], currentMessageFilter='all';
+
+async function loadMessages(){
+  document.getElementById('messagesContainer').innerHTML='<div class="empty-state">Loading messages…</div>';
+  const {data,error}=await sb.from('messages').select('*').order('created_at',{ascending:false});
+  if(error){
+    document.getElementById('messagesContainer').innerHTML=`<div class="error">${error.message}<div style="margin-top:.5rem;font-size:.75rem">Have you run <code>messages-setup.sql</code> in Supabase yet?</div></div>`;
+    return;
+  }
+  allMessages=data||[];
+  renderMessageStats(); renderMessages(); updateUnreadBadge();
+}
+
+function renderMessageStats(){
+  const total=allMessages.length;
+  const unread=allMessages.filter(m=>!m.read).length;
+  const today=allMessages.filter(m=>{const d=new Date(m.created_at);const t=new Date();return d.toDateString()===t.toDateString()}).length;
+  document.getElementById('messageStats').innerHTML=`
+    <div class="stat"><div class="stat-label">Total Messages</div><div class="stat-value">${total}</div></div>
+    <div class="stat ${unread>0?'warning':''}"><div class="stat-label">Unread</div><div class="stat-value">${unread}</div></div>
+    <div class="stat"><div class="stat-label">Today</div><div class="stat-value">${today}</div></div>`;
+}
+
+function updateUnreadBadge(){
+  const unread=allMessages.filter(m=>!m.read).length;
+  const badge=document.getElementById('unreadBadge');
+  if(unread>0){badge.textContent=unread;badge.style.display='inline-block'}
+  else{badge.style.display='none'}
+}
+
+function filterMessages(filter,btn){
+  currentMessageFilter=filter;
+  document.querySelectorAll('#messages-panel .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMessages();
+}
+
+function renderMessages(){
+  let filtered=allMessages;
+  if(currentMessageFilter==='unread')filtered=filtered.filter(m=>!m.read);
+  else if(currentMessageFilter==='read')filtered=filtered.filter(m=>m.read);
+  if(!filtered.length){document.getElementById('messagesContainer').innerHTML='<div class="empty-state">No messages match.</div>';return}
+  const rows=filtered.map(m=>{
+    const date=m.created_at?new Date(m.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+    const phone=(m.phone||'').replace(/\D/g,'');
+    const waPhone=phone?(phone.startsWith('962')?phone:'962'+phone.replace(/^0/,'')):'';
+    const waLink=waPhone?`<a class="wa-link" style="padding:.35rem .8rem;font-size:.65rem" href="https://wa.me/${waPhone}" target="_blank">WhatsApp</a>`:'';
+    const emailLink=m.email?`<a class="icon-btn" href="mailto:${escapeHtml(m.email)}" style="text-decoration:none">Email</a>`:'';
+    const readBadge=m.read?'<span class="pay-badge">Read</span>':'<span class="status-badge status-awaiting_payment">Unread</span>';
+    const toggleBtn=m.read?`<button class="icon-btn" onclick="toggleRead(${m.id},false)">Mark Unread</button>`:`<button class="icon-btn" onclick="toggleRead(${m.id},true)">Mark Read</button>`;
+    return `<tr style="${m.read?'':'background:rgba(184,149,106,.04)'}">
+      <td>${date}<br>${readBadge}</td>
+      <td>
+        <div style="font-weight:500">${escapeHtml(m.name||'—')}</div>
+        <div style="font-size:.7rem;color:var(--dim)">${escapeHtml(m.phone||'')} ${m.email?'· '+escapeHtml(m.email):''}</div>
+      </td>
+      <td style="max-width:400px;white-space:pre-wrap;font-size:.85rem">${escapeHtml(m.message||'')}</td>
+      <td class="row-actions" style="white-space:nowrap">
+        ${waLink}
+        ${emailLink}
+        ${toggleBtn}
+        <button class="icon-btn danger" onclick="deleteMessage(${m.id})">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('messagesContainer').innerHTML=`<table><thead><tr><th>Received</th><th>From</th><th>Message</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function toggleRead(id,read){
+  const {error}=await sb.from('messages').update({read}).eq('id',id);
+  if(error){toast('Update failed: '+error.message,true);return}
+  const m=allMessages.find(x=>x.id===id); if(m)m.read=read;
+  renderMessageStats(); renderMessages(); updateUnreadBadge();
+  toast(read?'Marked as read.':'Marked as unread.');
+}
+
+async function deleteMessage(id){
+  if(!confirm('Delete this message?'))return;
+  const {error}=await sb.from('messages').delete().eq('id',id);
+  if(error){toast('Delete failed: '+error.message,true);return}
+  toast('Message deleted.'); loadMessages();
+}
+
 checkAuth();
-setInterval(()=>{if(document.getElementById('dashboard').style.display!=='none'&&currentTab==='orders'){loadOrders()}},60000);
+setInterval(()=>{
+  if(document.getElementById('dashboard').style.display==='none')return;
+  if(currentTab==='orders')loadOrders();
+  else if(currentTab==='messages')loadMessages();
+},60000);
 </script>
 </body>
 </html>

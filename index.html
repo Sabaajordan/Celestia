@@ -615,10 +615,11 @@ html[dir="rtl"] .nav-links a{text-align:right}
     </div>
     <div class="c-form reveal reveal-d1">
       <div class="sect-label">Send a Message</div>
-      <div class="f-row"><div><label>Name</label><input type="text" placeholder="Your name"></div><div><label>Phone</label><input type="tel" placeholder="+962"></div></div>
-      <div><label>Email</label><input type="email" placeholder="your@email.com"></div>
-      <div><label>Message</label><textarea placeholder="How can we help?"></textarea></div>
-      <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:.5rem">Send Message</button>
+      <div class="f-row"><div><label>Name</label><input type="text" id="msgName" placeholder="Your name"></div><div><label>Phone</label><input type="tel" id="msgPhone" placeholder="+962"></div></div>
+      <div><label>Email</label><input type="email" id="msgEmail" placeholder="your@email.com"></div>
+      <div><label>Message</label><textarea id="msgBody" placeholder="How can we help?"></textarea></div>
+      <div id="msgStatus" style="font-size:.8rem;margin-top:.5rem;min-height:1.2em"></div>
+      <button class="btn btn-gold" id="msgSendBtn" style="width:100%;justify-content:center;margin-top:.5rem" onclick="sendContactMessage()">Send Message</button>
     </div>
   </div>
 </section>
@@ -1552,6 +1553,48 @@ function closeLogin(){document.getElementById('loginModal').classList.remove('op
 // === USER MENU / AUTH STATE ===
 let currentUser = null;
 const ADMIN_EMAILS = ['celestia.jor@gmail.com'];
+
+async function sendContactMessage(){
+  const name = document.getElementById('msgName').value.trim();
+  const phone = document.getElementById('msgPhone').value.trim();
+  const email = document.getElementById('msgEmail').value.trim();
+  const message = document.getElementById('msgBody').value.trim();
+  const status = document.getElementById('msgStatus');
+  const btn = document.getElementById('msgSendBtn');
+  status.style.color = 'var(--gold)';
+  if(!name || !message){
+    status.textContent = currentLang==='ar' ? 'يرجى إدخال الاسم والرسالة.' : 'Please fill in your name and message.';
+    status.style.color = '#c96b6b';
+    return;
+  }
+  if(!phone && !email){
+    status.textContent = currentLang==='ar' ? 'يرجى إدخال رقم هاتف أو بريد إلكتروني.' : 'Please provide either a phone number or email.';
+    status.style.color = '#c96b6b';
+    return;
+  }
+  if(!sb){
+    status.textContent = 'Message service unavailable. Please contact us via WhatsApp.';
+    status.style.color = '#c96b6b';
+    return;
+  }
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = currentLang==='ar' ? 'جارٍ الإرسال…' : 'Sending…';
+  const {error} = await sb.from('messages').insert({name, phone: phone||null, email: email||null, message});
+  btn.disabled = false;
+  btn.textContent = originalText;
+  if(error){
+    status.textContent = (currentLang==='ar' ? 'فشل الإرسال: ' : 'Send failed: ') + error.message;
+    status.style.color = '#c96b6b';
+    return;
+  }
+  status.textContent = currentLang==='ar' ? 'تم إرسال رسالتك! سنتواصل معك قريباً.' : 'Message sent! We\'ll be in touch soon.';
+  status.style.color = '#7fbf7f';
+  document.getElementById('msgName').value='';
+  document.getElementById('msgPhone').value='';
+  document.getElementById('msgEmail').value='';
+  document.getElementById('msgBody').value='';
+}
 
 async function refreshAuthUI(){
   if(!sb){return}
