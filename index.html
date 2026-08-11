@@ -338,17 +338,19 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
 @media(max-width:600px){.prod-grid{grid-template-columns:1fr 1fr;gap:.8rem}}
 
 /* COLLECTION PAGE */
-.coll-page{position:fixed;inset:0;z-index:400;background:rgba(6,5,4,.85);backdrop-filter:blur(10px);overflow-y:auto;display:none;align-items:flex-start;justify-content:center;padding:3rem 1rem}
-.coll-page.open{display:flex}
-.coll-page-inner{background:var(--surface);max-width:1100px;width:100%;border-radius:20px;padding:2rem 2rem 3rem;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid rgba(184,149,106,.15);margin:auto}
-.coll-page-header{padding:1rem 0 1.5rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
-.coll-page-close{font-size:1.4rem;color:var(--muted);cursor:pointer;padding:.5rem .8rem;transition:color .3s;background:rgba(184,149,106,.08);border:1px solid rgba(184,149,106,.2);border-radius:8px;flex-shrink:0}
-.coll-page-close:hover{color:var(--gold);background:rgba(184,149,106,.15)}
+.coll-page{position:fixed;inset:0;z-index:400;background:var(--bg);overflow-y:auto;display:none;padding:0}
+.coll-page.open{display:block}
+.coll-page-inner{background:var(--bg);max-width:1400px;width:100%;padding:2rem 2rem 4rem;position:relative;margin:0 auto;min-height:100vh}
+.coll-page-header{padding:1.2rem 0;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid rgba(184,149,106,.1);margin-bottom:2rem}
+.coll-page-close{font-size:1.4rem;color:var(--muted);cursor:pointer;padding:.7rem 1rem;transition:color .3s;background:transparent;border:1px solid rgba(184,149,106,.2);border-radius:8px;flex-shrink:0;font-family:inherit}
+.coll-page-close:hover{color:var(--gold);background:rgba(184,149,106,.08)}
 .coll-page-body{padding:0}
-.coll-page-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
-.coll-empty{text-align:center;padding:4rem 2rem;color:var(--dim);font-family:var(--serif);font-size:1.2rem}
-@media(max-width:900px){.coll-page-grid{grid-template-columns:repeat(2,1fr)}.coll-page-inner{padding:1.5rem 1.2rem 2rem;border-radius:14px}}
-@media(max-width:600px){.coll-page-grid{grid-template-columns:1fr 1fr;gap:.8rem}.coll-page{padding:1rem .8rem}.coll-page-inner{padding:1.2rem 1rem 1.8rem}}
+.coll-page-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+.coll-page-filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2rem}
+.coll-empty{text-align:center;padding:4rem 2rem;color:var(--dim);font-family:var(--serif);font-size:1.2rem;grid-column:1/-1}
+@media(max-width:1100px){.coll-page-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.coll-page-grid{grid-template-columns:repeat(2,1fr)}.coll-page-inner{padding:1.5rem 1.2rem 3rem}}
+@media(max-width:600px){.coll-page-grid{gap:1rem}}
 
 /* ABOUT */
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;max-width:1100px;margin:0 auto}
@@ -580,7 +582,7 @@ html[dir="rtl"] .nav-links a{text-align:right}
     <h1>Where Style<br>Meets <span class="gold italic">Sparkle</span></h1>
     <p class="hero-desc">Curated accessories and premium cosmetics, handpicked to add that perfect touch of magic to your look.</p>
     <div class="hero-actions">
-      <a href="#shop" class="btn btn-gold">Shop Now</a>
+      <a href="#collections" class="btn btn-gold">Shop Now</a>
       <a href="https://www.instagram.com/celestiaaccessories.jo/" target="_blank" class="btn btn-ghost">Follow Us @celestiaaccessories.jo</a>
     </div>
   </div>
@@ -599,32 +601,12 @@ html[dir="rtl"] .nav-links a{text-align:right}
   <div class="coll-scroll">
     <div onclick="openCollPage('bags','Bags','Clutches, totes & evening bags')" class="coll-card coll-bags reveal"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">New Items</div><h3>Bags</h3><p>Clutches, totes & evening bags</p><div class="coll-link">Browse →</div></div></div>
     <div onclick="openCollPage('makeup','Make-up','Premium cosmetics from top brands')" class="coll-card coll-makeup reveal reveal-d1"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Available Now</div><h3>Make-up</h3><p>Premium cosmetics</p><div class="coll-link">Browse →</div></div></div>
-    <div onclick="openCollPage('accessories','Accessories','Jewelry, hair accessories & statement pieces')" class="coll-card coll-accessories reveal reveal-d2"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">New Items</div><h3>Accessories</h3><p>Jewelry, hair & more</p><div class="coll-link">Browse →</div></div></div>
+    <div onclick="openCollPage('accessories','Accessories','Jewelry, hair accessories & statement pieces')" class="coll-card coll-accessories reveal reveal-d2"><div class="coll-img"></div><div class="coll-body"><div class="coll-tag">Coming Soon</div><h3>Accessories</h3><p>Jewelry, hair & more</p><div class="coll-link">Browse →</div></div></div>
   </div>
 </section>
 
 <!-- SHOP -->
-<section class="sect" id="shop" style="background:var(--surface)">
-  <div class="sect-header reveal"><div class="sect-label">Shop</div><div class="sect-title">Our Products</div><div class="sect-desc">Premium cosmetics and beauty essentials. Add to cart and checkout with delivery.</div></div>
-  <div class="shop-cats reveal">
-    <button class="shop-cat active" onclick="filterCategory('all',this)">All</button>
-    <button class="shop-cat" onclick="filterCategory('cosmetics',this)">Cosmetics</button>
-    <button class="shop-cat" onclick="filterCategory('skincare',this)">Skincare</button>
-    <button class="shop-cat" onclick="filterCategory('bags',this)">Bags</button>
-  </div>
-  <div class="shop-filters reveal" id="shopFilters">
-    <button class="shop-filter active" onclick="filterProducts('all',this)">All</button>
-    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('bourjois',this)">Bourjois</button>
-    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('maxfactor',this)">Max Factor</button>
-    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('essence',this)">Essence</button>
-    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('maybelline',this)">Maybelline</button>
-    <button class="shop-filter" data-cat="cosmetics" onclick="filterProducts('pastel',this)">Pastel</button>
-    <button class="shop-filter" data-cat="skincare" onclick="filterProducts('garnier',this)">Garnier</button>
-    <button class="shop-filter" data-cat="skincare" onclick="filterProducts('bioderma',this)">Bioderma</button>
-    <button class="shop-filter" data-cat="bags" onclick="filterProducts('chrisbella',this)">Chrisbella</button>
-  </div>
-  <div class="prod-grid" id="prodGrid"></div>
-</section>
+<!-- SHOP section removed - products now accessible via collection cards -->
 
 <!-- ABOUT -->
 <section class="sect" id="about">
@@ -716,7 +698,7 @@ html[dir="rtl"] .nav-links a{text-align:right}
 <footer class="footer">
   <div class="f-top">
     <div class="f-brand"><div class="nav-logo"><img src="logo.png" alt="Celestia"></div><p>Where style meets sparkle. An accessories boutique in Amman, Jordan.</p></div>
-    <div class="f-col"><h5>Shop</h5><a href="#shop">All Products</a><a href="#collections">Collections</a><a href="#shop">Best Sellers</a></div>
+    <div class="f-col"><h5>Shop</h5><a href="#collections">All Products</a><a href="#collections">Collections</a><a href="#collections">Best Sellers</a></div>
     <div class="f-col"><h5>Company</h5><a href="#about">About</a><a href="#services">Services</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a></div>
     <div class="f-col"><h5>Connect</h5><a href="https://www.instagram.com/celestiaaccessories.jo/" target="_blank">Instagram</a><a href="https://wa.me/96278607710" target="_blank">WhatsApp</a><a href="tel:+96278607710">07 8607 7100</a></div>
   </div>
@@ -742,6 +724,7 @@ html[dir="rtl"] .nav-links a{text-align:right}
       </div>
       <button class="coll-page-close" onclick="closeCollPage()">✕</button>
     </div>
+    <div class="coll-page-filters" id="collPageFilters"></div>
     <div class="coll-page-body">
       <div class="coll-page-grid" id="collPageGrid"></div>
     </div>
@@ -887,6 +870,7 @@ function renderProductCard(p){
 
 function renderProducts(){
   const grid=document.getElementById('prodGrid');
+  if(!grid) return; // shop grid removed — products now shown in collection pages
   if(!products.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">Loading products…</div>';return}
   grid.innerHTML=products.map(renderProductCard).join('');
 }
@@ -948,25 +932,61 @@ loadProductsFromDB();
 function openPage(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';document.getElementById(id).scrollTop=0}
 function closePage(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
 
+let currentCollCat = null;
+let currentCollBrand = 'all';
+
 function openCollPage(cat,title,desc){
+  currentCollCat = cat;
+  currentCollBrand = 'all';
   document.getElementById('collPageTitle').textContent=title;
   document.getElementById('collPageDesc').textContent=desc;
-  const grid=document.getElementById('collPageGrid');
-  let filtered=[];
-  if(cat==='makeup') filtered=products.filter(p=>p.category==='cosmetics'||p.category==='skincare');
-  else if(cat==='bags') filtered=products.filter(p=>p.category==='bags');
-  else if(cat==='accessories') filtered=products.filter(p=>p.category==='accessories');
-  if(!filtered.length){
-    grid.innerHTML='<div class="coll-empty">New items arriving soon — stay tuned.</div>';
-  } else {
-    grid.innerHTML=filtered.map(renderProductCard).join('');
-  }
+  renderCollPageFilters();
+  renderCollPageGrid();
   document.getElementById('collPage').classList.add('open');
   document.body.style.overflow='hidden';
   document.getElementById('collPage').scrollTop=0;
-  // Push state so browser back button closes the modal
   if(!history.state||history.state.modal!=='collPage'){
     history.pushState({modal:'collPage'},'','#collection');
+  }
+}
+
+function getCollProducts(cat){
+  if(cat==='makeup') return products.filter(p=>p.category==='cosmetics'||p.category==='skincare');
+  if(cat==='bags') return products.filter(p=>p.category==='bags');
+  if(cat==='accessories') return products.filter(p=>p.category==='accessories');
+  return [];
+}
+
+function renderCollPageFilters(){
+  const items = getCollProducts(currentCollCat);
+  const brands = [...new Set(items.map(p=>p.brand).filter(Boolean))].sort();
+  if(brands.length <= 1){
+    document.getElementById('collPageFilters').innerHTML='';
+    return;
+  }
+  const chips = ['all',...brands].map(b=>{
+    const label = b==='all' ? (currentLang==='ar'?'الكل':'All') : brandLabel(b);
+    const active = currentCollBrand === b ? ' active' : '';
+    return `<button class="shop-filter${active}" onclick="filterCollBrand('${b}',this)">${label}</button>`;
+  }).join('');
+  document.getElementById('collPageFilters').innerHTML = chips;
+}
+
+function filterCollBrand(brand,btn){
+  currentCollBrand = brand;
+  document.querySelectorAll('#collPageFilters .shop-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCollPageGrid();
+}
+
+function renderCollPageGrid(){
+  const grid = document.getElementById('collPageGrid');
+  let items = getCollProducts(currentCollCat);
+  if(currentCollBrand !== 'all') items = items.filter(p=>p.brand===currentCollBrand);
+  if(!items.length){
+    grid.innerHTML = `<div class="coll-empty">${currentLang==='ar' ? 'ستصل قريباً — ترقّبوا الجديد.' : 'New items arriving soon — stay tuned.'}</div>`;
+  } else {
+    grid.innerHTML = items.map(renderProductCard).join('');
   }
 }
 function closeCollPage(){
