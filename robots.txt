@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /*.sql$
+
+Sitemap: https://celestiaaccessoriesjo.netlify.app/sitemap.xml
