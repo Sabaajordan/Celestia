@@ -175,9 +175,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;color:inhe
 .hamburger span{width:22px;height:1px;background:var(--white);transition:.3s}
 
 /* HERO */
-.hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:8rem 2.5rem 6rem;position:relative;overflow:hidden}
+.hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:8rem 2.5rem 6rem;position:relative;overflow:hidden;background:radial-gradient(ellipse at 30% 40%,#3a2818 0%,#1a120c 40%,#0a0806 100%)}
 .hero-bg{position:absolute;inset:0;background:var(--bg)}
-.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;background:linear-gradient(135deg,#1a1310 0%,#0e0b08 60%,#231810 100%)}
+.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;background:radial-gradient(ellipse at 30% 40%,#3a2818 0%,#1a120c 40%,#0a0806 100%)}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(0deg,var(--bg) 0%,rgba(6,5,4,.4) 40%,rgba(6,5,4,.6) 100%),radial-gradient(ellipse 80% 60% at 70% 30%,rgba(184,149,106,.05) 0%,transparent 70%)}
 .hero-line{position:absolute;top:0;left:50%;width:1px;height:40vh;background:linear-gradient(to bottom,transparent,rgba(184,149,106,.25),transparent);animation:heroLine 3s ease-in-out infinite}
 @keyframes heroLine{0%,100%{opacity:.3;transform:scaleY(.7)}50%{opacity:1;transform:scaleY(1)}}
@@ -574,7 +574,7 @@ html[dir="rtl"] .nav-links a{text-align:right}
 <!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-bg"></div>
-  <video class="hero-video" autoplay muted loop playsinline webkit-playsinline preload="auto" id="heroVid" poster="logo.png" onerror="this.style.display='none'"><source src="hero-video-2.mp4" type="video/mp4"></video>
+  <video class="hero-video" autoplay muted loop playsinline webkit-playsinline preload="auto" id="heroVid" onerror="this.style.display='none'"><source src="hero-video-2.mp4" type="video/mp4"></video>
   <div class="hero-overlay"></div>
   <div class="hero-line"></div>
   <div class="hero-content">
@@ -1819,17 +1819,17 @@ const heroVideos=['hero-video-2.mp4','hero-video.mp4'];
 let currentVid=0;
 
 function playHeroVid(){
+  if(!heroVid) return;
   const promise=heroVid.play();
   if(promise!==undefined){
     promise.catch(err=>{
-      // Autoplay blocked or video stalled — try again on any user interaction
+      // Autoplay blocked — retry on ANY user interaction
+      const events=['scroll','mousemove','touchstart','click','keydown','pointerdown'];
       const retry=()=>{
         heroVid.play().catch(()=>{});
-        document.removeEventListener('touchstart',retry);
-        document.removeEventListener('click',retry);
+        events.forEach(ev=>document.removeEventListener(ev,retry));
       };
-      document.addEventListener('touchstart',retry,{once:true,passive:true});
-      document.addEventListener('click',retry,{once:true});
+      events.forEach(ev=>document.addEventListener(ev,retry,{once:true,passive:true}));
     });
   }
 }
