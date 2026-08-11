@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /*.sql$
 
-Sitemap: https://celestiaaccessoriesjo.netlify.app/sitemap.xml
+Sitemap: https://celestiaaccessories.com/sitemap.xml
