@@ -415,6 +415,7 @@ html[dir="rtl"] .prod-modal-close{right:auto;left:1rem}
 .f-col h5{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem}
 .f-col a{display:block;font-size:.82rem;color:var(--dim);margin-bottom:.7rem;transition:color .3s}.f-col a:hover{color:var(--gold)}
 .f-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:2rem;border-top:1px solid rgba(255,255,255,.03);font-size:.7rem;color:var(--dim)}
+.f-bottom a{transition:color .3s}.f-bottom a:hover{color:var(--gold)!important}
 
 /* CART DRAWER */
 .cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -702,7 +703,7 @@ html[dir="rtl"] .nav-links a{text-align:right}
     <div class="f-col"><h5>Company</h5><a href="#about">About</a><a href="#services">Services</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a></div>
     <div class="f-col"><h5>Connect</h5><a href="https://www.instagram.com/celestiaaccessories.jo/" target="_blank">Instagram</a><a href="https://wa.me/96278607710" target="_blank">WhatsApp</a><a href="tel:+96278607710">07 8607 7100</a></div>
   </div>
-  <div class="f-bottom"><span>© 2026 Celestia Accessories</span><span>Amman, Jordan</span></div>
+  <div class="f-bottom"><span>© 2026 Celestia Accessories</span><span><a href="/refund-and-exchange.html" style="color:var(--dim);border:none;text-decoration:none">Refund & Exchange Policy</a></span><span>Amman, Jordan</span></div>
 </footer>
 
 <!-- COLLECTION PAGE -->
@@ -767,6 +768,10 @@ html[dir="rtl"] .nav-links a{text-align:right}
       <div style="font-size:.85rem;line-height:1.7;color:var(--muted)">
         We'll contact you on WhatsApp shortly to confirm your delivery details and share our CliQ payment info.
       </div>
+    </div>
+    <div style="margin:1.2rem 0;padding:.9rem 1rem;background:rgba(184,149,106,.04);border:1px solid rgba(184,149,106,.15);display:flex;align-items:flex-start;gap:.7rem">
+      <input type="checkbox" id="policyAgree" style="margin-top:.15rem;width:1rem;height:1rem;accent-color:var(--gold);flex-shrink:0;cursor:pointer">
+      <label for="policyAgree" style="font-size:.8rem;color:var(--muted);line-height:1.5;cursor:pointer">I have read and accept the <a href="/refund-and-exchange.html" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">Refund & Exchange Policy</a>.</label>
     </div>
     <button class="ch-place" id="codBtn" onclick="placeOrder()">Place Order — Cash on Delivery</button>
     <button class="ch-place" id="cliqBtn" style="display:none" onclick="placeOrder()">Place Order — CliQ</button>
@@ -1257,6 +1262,9 @@ function openCheckout(){
   updateCheckoutSummary();
   // Reset to COD
   selectPayment(document.querySelector('.pay-option'),'cod');
+  // Reset policy checkbox
+  const pb=document.getElementById('policyAgree');
+  if(pb) pb.checked=false;
 }
 function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');document.body.style.overflow=''}
 
@@ -1295,6 +1303,13 @@ function placeOrder(){
   const phone=document.getElementById('chPhone').value;
   const address=document.getElementById('chAddress').value;
   if(!name||!phone||!address){showToast('Please fill in all required fields');return}
+  const policyBox=document.getElementById('policyAgree');
+  if(policyBox && !policyBox.checked){
+    showToast(currentLang==='ar' ? 'يرجى قبول سياسة الاسترجاع والاستبدال أولاً.' : 'Please accept the Refund & Exchange Policy first.');
+    policyBox.parentElement.style.borderColor='#c96b6b';
+    setTimeout(()=>{policyBox.parentElement.style.borderColor='rgba(184,149,106,.15)'},2000);
+    return;
+  }
   const area=document.getElementById('chArea').value;
   const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const tax=subtotal*0.16;
