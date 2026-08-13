@@ -342,7 +342,7 @@ function renderOrders(){
     const preview=items.map(i=>`${i.name}${i.color?' ('+i.color+')':''} ×${i.qty}`).join(', ');
     const date=o.created_at?new Date(o.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
     const pay=o.payment_method==='cliq'?'CliQ':'COD';
-    return `<tr onclick='openOrderDetail(${o.id})' style="cursor:pointer">
+    return `<tr onclick="openOrderDetail('${o.id}')" style="cursor:pointer">
       <td>#${o.id}</td><td>${date}</td>
       <td>${escapeHtml(o.customer_name||'—')}<br><span style="font-size:.7rem;color:var(--dim)">${escapeHtml(o.phone||'')}</span></td>
       <td class="items-preview">${escapeHtml(preview)}</td>
@@ -376,10 +376,10 @@ function openOrderDetail(id){
     <div style="margin-top:1rem"><div class="modal-sub">Items</div>${itemsHtml||'<div class="detail-item">—</div>'}</div>
     <div class="form-actions" style="justify-content:flex-start;flex-wrap:wrap">
       <a class="wa-link" href="https://wa.me/${waPhone}" target="_blank">💬 Message Customer</a>
-      <button onclick="updateOrderStatus(${o.id},'confirmed')">Mark Confirmed</button>
-      <button onclick="updateOrderStatus(${o.id},'delivered')">Mark Delivered</button>
-      <button class="danger" onclick="updateOrderStatus(${o.id},'cancelled')">Cancel</button>
-      <button class="danger" onclick="deleteOrder(${o.id})">Delete</button>
+      <button onclick="updateOrderStatus('${o.id}','confirmed')">Mark Confirmed</button>
+      <button onclick="updateOrderStatus('${o.id}','delivered')">Mark Delivered</button>
+      <button class="danger" onclick="updateOrderStatus('${o.id}','cancelled')">Cancel</button>
+      <button class="danger" onclick="deleteOrder('${o.id}')">Delete</button>
     </div>`;
   document.getElementById('orderDetailOverlay').classList.add('open');
 }
