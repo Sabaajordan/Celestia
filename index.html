@@ -1298,7 +1298,7 @@ function updateCheckoutSummary(){
 }
 document.getElementById('chArea')?.addEventListener('change',updateCheckoutSummary);
 
-function placeOrder(){
+async function placeOrder(){
   const name=document.getElementById('chName').value;
   const phone=document.getElementById('chPhone').value;
   const address=document.getElementById('chAddress').value;
@@ -1316,13 +1316,27 @@ function placeOrder(){
   const total=subtotal+tax;
   const isCliq=paymentMethod==='cliq';
   const status=isCliq?'awaiting_payment':'pending';
-  saveOrder({name,phone,address,area,items:cart,subtotal,tax,delivery:0,total,payment:paymentMethod,status});
+
+  // For CliQ: open WhatsApp SYNCHRONOUSLY inside the click handler
+  // (otherwise the browser blocks it as a popup after the await below)
   if(isCliq){
     const itemsList=cart.map(i=>`• ${i.name}${i.color?' ('+i.color+')':''} ×${i.qty} = ${(i.price*i.qty).toFixed(2)} JOD`).join('\n');
     const msg=`💳 New Order (CliQ — please share payment details):\n${itemsList}\nSubtotal: ${subtotal.toFixed(2)} JOD\nTax (16%): ${tax.toFixed(2)} JOD\nTotal: ${total.toFixed(2)} JOD\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\nArea: ${area==='amman'?'Amman':'Outside Amman'}`;
     window.open('https://wa.me/962786077100?text='+encodeURIComponent(msg),'_blank');
   }
-  showToast(isCliq?'Order placed! We will contact you via WhatsApp to arrange payment.':'Order placed! We will contact you to confirm delivery.');
+
+  const result = await saveOrder({name,phone,address,area,items:cart,subtotal,tax,delivery:0,total,payment:paymentMethod,status});
+  if(!result.ok){
+    // For CliQ, the order already went out via WhatsApp — just warn
+    if(isCliq){
+      showToast('Order sent via WhatsApp, but not saved to DB: '+result.error, true);
+    } else {
+      showToast('Could not place order: '+result.error, true);
+      return;
+    }
+  } else {
+    showToast(isCliq?'Order placed! We will contact you via WhatsApp to arrange payment.':'Order placed! We will contact you to confirm delivery.');
+  }
   decrementStockForOrder(cart);
   cart=[];updateCartUI();closeCheckout();
 }
@@ -1359,7 +1373,7 @@ async function decrementStockForOrder(orderedItems){
 
 // === SUPABASE ORDER STORAGE ===
 async function saveOrder(order){
-  if(!sb) return console.log('Supabase not configured — order:', order);
+  if(!sb) { console.log('Supabase not configured — order:', order); return {ok:false, error:'Supabase not configured'}; }
   try {
     const payload = {
       customer_name: order.name,
@@ -1375,15 +1389,17 @@ async function saveOrder(order){
       status: order.status,
       created_at: new Date().toISOString()
     };
-    // If signed in, attach user info so Past Purchases can find this order
-    if(currentUser){
-      payload.user_id = currentUser.id;
-      payload.user_email = currentUser.email || null;
+    // Pull the LIVE session (not cached currentUser) so user_id is never missed
+    const {data:{session}} = await sb.auth.getSession();
+    if(session && session.user){
+      payload.user_id = session.user.id;
+      payload.user_email = session.user.email || null;
     }
-    const {data,error} = await sb.from('orders').insert([payload]);
-    if(error) console.error('Order save error:', error);
-    else console.log('Order saved:', data);
-  } catch(e){ console.error('Supabase error:', e) }
+    const {data,error} = await sb.from('orders').insert([payload]).select();
+    if(error){ console.error('Order save error:', error); return {ok:false, error:error.message}; }
+    console.log('Order saved:', data);
+    return {ok:true, data};
+  } catch(e){ console.error('Supabase error:', e); return {ok:false, error:e.message||String(e)}; }
 }
 
 // === AUTH ===
