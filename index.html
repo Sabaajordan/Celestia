@@ -1503,7 +1503,7 @@ async function handleResetPw(){
   if(!sb)return showErr('Account system not configured yet');
   msg.style.display='none';
   try{
-    const res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+    const res=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+'/reset-password.html'});
     if(res && res.error){
       return showErr(cleanErrMsg(res.error, 'Unable to send reset link. Please try again.'));
     }
