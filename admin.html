@@ -379,15 +379,33 @@ function openOrderDetail(id){
       <button onclick="updateOrderStatus(${o.id},'confirmed')">Mark Confirmed</button>
       <button onclick="updateOrderStatus(${o.id},'delivered')">Mark Delivered</button>
       <button class="danger" onclick="updateOrderStatus(${o.id},'cancelled')">Cancel</button>
+      <button class="danger" onclick="deleteOrder(${o.id})">Delete</button>
     </div>`;
   document.getElementById('orderDetailOverlay').classList.add('open');
 }
 function closeOrderDetail(){document.getElementById('orderDetailOverlay').classList.remove('open')}
 
 async function updateOrderStatus(id,status){
-  const {error}=await sb.from('orders').update({status}).eq('id',id);
+  const {data,error}=await sb.from('orders').update({status}).eq('id',id).select();
   if(error){toast('Update failed: '+error.message,true);return}
+  if(!data||data.length===0){
+    const {data:{session}}=await sb.auth.getSession();
+    toast(`Blocked by RLS. Signed in as: ${session?.user?.email||'(not signed in)'}`,true);
+    return;
+  }
   closeOrderDetail(); loadOrders(); toast('Order updated.');
+}
+
+async function deleteOrder(id){
+  if(!confirm('Delete this order permanently?'))return;
+  const {data,error}=await sb.from('orders').delete().eq('id',id).select();
+  if(error){toast('Delete failed: '+error.message,true);return}
+  if(!data||data.length===0){
+    const {data:{session}}=await sb.auth.getSession();
+    toast(`Blocked by RLS. Signed in as: ${session?.user?.email||'(not signed in)'}`,true);
+    return;
+  }
+  closeOrderDetail(); loadOrders(); toast('Order deleted.');
 }
 
 // ===== PRODUCTS =====
