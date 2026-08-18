@@ -1768,7 +1768,10 @@ document.addEventListener('click',e=>{
 
 async function handleSignOut(){
   if(!sb)return;
-  await sb.auth.signOut();
+  try{
+    // 'local' scope = clear this browser's session only; won't 403 if session is already expired server-side
+    await sb.auth.signOut({scope:'local'});
+  }catch(e){ console.warn('Sign out warning (safe to ignore):',e); }
   currentUser = null;
   document.getElementById('userDropdown').classList.remove('open');
   refreshAuthUI();
