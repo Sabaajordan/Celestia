@@ -1483,6 +1483,11 @@ async function handleSignUp(){
     if(res && res.error){
       return showErr(cleanErrMsg(res.error, 'Unable to create account. Please try again.'));
     }
+    // Supabase returns a fake-success for existing emails (privacy protection).
+    // The tell: user object exists but identities array is empty.
+    if(res && res.data && res.data.user && Array.isArray(res.data.user.identities) && res.data.user.identities.length===0){
+      return showErr('An account with this email already exists. Try signing in instead.');
+    }
     if(res && res.data && res.data.session){
       showToast('Welcome to Celestia!');closeLogin();refreshAuthUI();
     } else {
