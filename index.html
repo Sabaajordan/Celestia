@@ -283,7 +283,8 @@ html[dir="rtl"] .hero-scroll{right:auto;left:2.5rem}
 .prod-card.sold-out .prod-img{opacity:.6}
 .prod-card.sold-out .add-cart{background:rgba(120,90,60,.15);color:var(--dim);cursor:not-allowed;pointer-events:none}
 .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem}
-.prod-card{transition:transform .4s;display:block;cursor:pointer}.prod-card:hover{transform:translateY(-4px)}
+.prod-card{transition:transform .4s;display:flex;flex-direction:column;cursor:pointer}.prod-card:hover{transform:translateY(-4px)}
+.prod-card .add-cart{margin-top:auto}
 /* Product Detail Modal — eBay-style layout */
 .prod-modal{position:fixed;inset:0;z-index:500;background:rgba(6,5,4,.88);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:2rem 1rem;overflow-y:auto}
 .prod-modal.open{display:flex}
@@ -648,7 +649,16 @@ html[dir="rtl"] .nav-links a{text-align:right}
     <div class="rev-card reveal reveal-d1"><div class="rev-quote">"</div><div class="rev-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="rev-text">"A dream come true for style lovers! Every item shines with elegance and creativity. I always leave feeling more confident."</div><div class="rev-author">Rihab A.</div><div class="rev-role">Google Review</div></div>
     <div class="rev-card reveal reveal-d2"><div class="rev-quote">"</div><div class="rev-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><div class="rev-text">"An impressive collection of beautiful unique accessories — each piece tells a story. Professional and friendly staff."</div><div class="rev-author">Eva S.</div><div class="rev-role">Google Review</div></div>
   </div>
-  <div class="rev-badge reveal"><div class="rb-num">5.0</div><div class="rb-info"><strong>Excellent</strong>Based on 27 Google reviews</div></div>
+  <div class="rev-badge reveal">
+    <div class="rb-num" id="gRating">5.0</div>
+    <div class="rb-info"><strong>Excellent</strong>Based on <span id="gCount">27</span> Google reviews</div>
+  </div>
+  <div style="text-align:center;margin-top:2rem" class="reveal">
+    <a href="https://www.google.com/maps?cid=1481031993052970024&hl=en" target="_blank" rel="noopener"
+       style="display:inline-block;padding:.9rem 2rem;background:var(--gold);color:var(--bg);text-decoration:none;font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;border-radius:6px;transition:opacity .2s"
+       onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'"
+       id="leaveReviewBtn">★ Leave a Google Review</a>
+  </div>
 </section>
 
 <!-- CONTACT -->
@@ -1001,17 +1011,24 @@ function closeCollPage(){
   document.body.style.overflow='';
   if(history.state&&history.state.modal==='collPage'){history.back()}
 }
-// Listen for browser back button
+// Listen for browser back button — smart about which modal to close based on current history state
 window.addEventListener('popstate',function(e){
-  const cp=document.getElementById('collPage');
-  if(cp&&cp.classList.contains('open')){
-    cp.classList.remove('open');
-    document.body.style.overflow='';
-  }
-  const pm=document.getElementById('prodModal');
-  if(pm&&pm.classList.contains('open')){
+  const state = history.state;
+  const currentModal = state && state.modal ? state.modal : null;
+  const pm = document.getElementById('prodModal');
+  const cp = document.getElementById('collPage');
+  // If we're no longer in prodModal state, close product modal
+  if(pm && pm.classList.contains('open') && currentModal !== 'prodModal'){
     pm.classList.remove('open');
-    document.body.style.overflow='';
+  }
+  // Close collection ONLY if we're no longer in collPage OR prodModal state
+  // (product modal is opened from inside a collection, so the collection should stay open behind it)
+  if(cp && cp.classList.contains('open') && currentModal !== 'collPage' && currentModal !== 'prodModal'){
+    cp.classList.remove('open');
+  }
+  // Restore body scroll only if nothing is open
+  if((!pm||!pm.classList.contains('open')) && (!cp||!cp.classList.contains('open'))){
+    document.body.style.overflow = '';
   }
 });
 // ESC key closes modal
@@ -1536,6 +1553,20 @@ function closeNav(){
   if(bd) bd.classList.remove('open');
   document.body.style.overflow='';
 }
+// Mobile fix: anchor links inside the fixed menu don't scroll on iOS when body has overflow:hidden.
+// Intercept anchor taps, close the menu, then scroll manually after the close animation.
+document.addEventListener('click',function(e){
+  const link = e.target.closest('.nav-links a[href^="#"]');
+  if(!link) return;
+  const target = link.getAttribute('href');
+  if(!target || target === '#') return;
+  e.preventDefault();
+  closeNav();
+  setTimeout(()=>{
+    const el = document.querySelector(target);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  }, 350);
+});
 // === LANGUAGE / TRANSLATION SYSTEM ===
 const T = {
   ar: {
