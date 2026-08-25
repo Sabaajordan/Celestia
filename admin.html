@@ -400,6 +400,8 @@ function openOrderDetail(id){
 function closeOrderDetail(){document.getElementById('orderDetailOverlay').classList.remove('open')}
 
 async function updateOrderStatus(id,status){
+  // Grab the order first so we know its previous status and items
+  const {data:orderBefore} = await sb.from('orders').select('status,items').eq('id',id).single();
   const {data,error}=await sb.from('orders').update({status}).eq('id',id).select();
   if(error){toast('Update failed: '+error.message,true);return}
   if(!data||data.length===0){
@@ -407,11 +409,22 @@ async function updateOrderStatus(id,status){
     toast(`Blocked by RLS. Signed in as: ${session?.user?.email||'(not signed in)'}`,true);
     return;
   }
-  closeOrderDetail(); loadOrders(); toast('Order updated.');
+  // Restore stock when moving to cancelled (from any non-cancelled state)
+  if(status==='cancelled' && orderBefore && orderBefore.status!=='cancelled'){
+    await restoreStockForOrder(orderBefore.items);
+    toast('Order cancelled and stock restored.');
+  } else {
+    toast('Order updated.');
+  }
+  closeOrderDetail(); loadOrders();
 }
 
 async function deleteOrder(id){
-  if(!confirm('Delete this order permanently?'))return;
+  // Ask if the order was actually completed
+  const wasCompleted = confirm('Was this order completed (customer received the items)?\n\nOK = Yes, keep stock as-is.\nCancel = No, restore stock.');
+  if(!confirm('Delete this order permanently? This cannot be undone.'))return;
+  // Grab items before deleting so we can restore stock if needed
+  const {data:orderBefore} = await sb.from('orders').select('status,items').eq('id',id).single();
   const {data,error}=await sb.from('orders').delete().eq('id',id).select();
   if(error){toast('Delete failed: '+error.message,true);return}
   if(!data||data.length===0){
@@ -419,7 +432,33 @@ async function deleteOrder(id){
     toast(`Blocked by RLS. Signed in as: ${session?.user?.email||'(not signed in)'}`,true);
     return;
   }
-  closeOrderDetail(); loadOrders(); toast('Order deleted.');
+  // Restore stock only if it wasn't completed AND wasn't already cancelled (cancel already restored)
+  if(!wasCompleted && orderBefore && orderBefore.status!=='cancelled'){
+    await restoreStockForOrder(orderBefore.items);
+    toast('Order deleted and stock restored.');
+  } else {
+    toast('Order deleted.');
+  }
+  closeOrderDetail(); loadOrders();
+}
+
+// Restore stock for each item in a cancelled/deleted order
+async function restoreStockForOrder(itemsJson){
+  if(!itemsJson) return;
+  let items;
+  try { items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson; } catch(e){ return; }
+  if(!Array.isArray(items)) return;
+  for(const item of items){
+    const qty = +item.qty || 0;
+    if(!qty) continue;
+    if(item.variantId){
+      const {data:v} = await sb.from('product_variants').select('quantity').eq('id',item.variantId).single();
+      if(v) await sb.from('product_variants').update({quantity:(+v.quantity||0)+qty}).eq('id',item.variantId);
+    } else if(item.id){
+      const {data:p} = await sb.from('products').select('quantity').eq('id',item.id).single();
+      if(p && typeof p.quantity === 'number') await sb.from('products').update({quantity:(+p.quantity||0)+qty}).eq('id',item.id);
+    }
+  }
 }
 
 // ===== PRODUCTS =====
