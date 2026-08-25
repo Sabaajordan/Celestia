@@ -780,9 +780,6 @@ html[dir="rtl"] .nav-links a{text-align:right}
       <div style="font-size:.85rem;line-height:1.7;color:var(--muted)">
         We'll contact you on WhatsApp shortly to confirm your delivery details and share our CliQ payment info.
       </div>
-      <div style="font-size:.75rem;line-height:1.6;color:#c96b6b;margin-top:.9rem;padding-top:.8rem;border-top:1px solid rgba(184,149,106,.15)">
-        ⚠ CliQ orders are only reserved once you confirm the order on WhatsApp. Items remain available for other customers until then.
-      </div>
     </div>
     <div style="margin:1.2rem 0;padding:.9rem 1rem;background:rgba(184,149,106,.04);border:1px solid rgba(184,149,106,.15);display:flex;align-items:flex-start;gap:.7rem">
       <input type="checkbox" id="policyAgree" style="margin-top:.15rem;width:1rem;height:1rem;accent-color:var(--gold);flex-shrink:0;cursor:pointer">
@@ -1359,9 +1356,7 @@ async function placeOrder(){
   } else {
     showToast(isCliq?'Order placed! We will contact you via WhatsApp to arrange payment.':'Order placed! We will contact you to confirm delivery.');
   }
-  // For COD, stock decreases immediately (order is committed on delivery).
-  // For CliQ, stock stays available until Rana confirms the WhatsApp message arrived.
-  if(!isCliq) decrementStockForOrder(cart);
+  decrementStockForOrder(cart);
   cart=[];updateCartUI();closeCheckout();
 }
 

@@ -405,8 +405,8 @@ function openOrderDetail(id){
         <div style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem">CliQ Payment Check</div>
         <div style="font-size:.9rem;margin-bottom:.8rem;color:var(--text)">Did the customer confirm the order on WhatsApp?</div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-          <button class="primary" onclick="confirmCliqOrder('${o.id}')">Yes — Confirm & Reserve Stock</button>
-          <button class="danger" onclick="rejectCliqOrder('${o.id}')">No — Cancel Order</button>
+          <button class="primary" onclick="confirmCliqOrder('${o.id}')">Yes — Confirm Order</button>
+          <button class="danger" onclick="rejectCliqOrder('${o.id}')">No — Cancel & Restore Stock</button>
         </div>
       </div>
     ` : ''}
@@ -421,22 +421,22 @@ function openOrderDetail(id){
 }
 function closeOrderDetail(){document.getElementById('orderDetailOverlay').classList.remove('open')}
 
-// CliQ-specific: confirm the WhatsApp order arrived → mark confirmed AND reserve stock now
+// CliQ-specific: confirm the WhatsApp order arrived → just mark confirmed (stock already decreased at checkout)
 async function confirmCliqOrder(id){
-  const {data:orderBefore} = await sb.from('orders').select('items').eq('id',id).single();
   const {data,error}=await sb.from('orders').update({status:'confirmed'}).eq('id',id).select();
   if(error){toast('Update failed: '+error.message,true);return}
   if(!data||data.length===0){toast('Update blocked by RLS.',true);return}
-  if(orderBefore) await decrementStockForOrder(orderBefore.items);
-  closeOrderDetail(); loadOrders(); toast('Order confirmed and stock reserved.');
+  closeOrderDetail(); loadOrders(); toast('Order confirmed.');
 }
 
-// CliQ-specific: customer never confirmed on WhatsApp → cancel, no stock movement (nothing was reserved)
+// CliQ-specific: customer never confirmed on WhatsApp → cancel and restore stock (was decreased at checkout)
 async function rejectCliqOrder(id){
+  const {data:orderBefore} = await sb.from('orders').select('status,items').eq('id',id).single();
   const {data,error}=await sb.from('orders').update({status:'cancelled'}).eq('id',id).select();
   if(error){toast('Update failed: '+error.message,true);return}
   if(!data||data.length===0){toast('Update blocked by RLS.',true);return}
-  closeOrderDetail(); loadOrders(); toast('Order cancelled.');
+  if(orderBefore && orderBefore.status!=='cancelled') await restoreStockForOrder(orderBefore.items);
+  closeOrderDetail(); loadOrders(); toast('Order cancelled and stock restored.');
 }
 
 // Decrement stock when an order is fulfilled (used by CliQ confirmation)
