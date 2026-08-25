@@ -249,6 +249,18 @@ tr:hover{background:rgba(184,149,106,.04)}
 
 <div class="toast" id="toast"></div>
 
+<div class="overlay" id="confirmDeleteOverlay" onclick="if(event.target===this)closeConfirmDelete(null)" style="z-index:1100">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">Delete this order?</div>
+    <div class="modal-sub" id="confirmDeleteMsg">Was this order completed (customer received the items)?</div>
+    <div class="form-actions" style="flex-direction:column;gap:.5rem;align-items:stretch;margin-top:1.2rem">
+      <button class="primary" onclick="closeConfirmDelete('completed')">Yes, completed — keep stock</button>
+      <button onclick="closeConfirmDelete('restore')">No, not completed — restore stock</button>
+      <button class="danger" onclick="closeConfirmDelete(null)" style="margin-top:.5rem">Cancel delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = 'https://hbhrbdvwtbquskdgohem.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiaHJiZHZ3dGJxdXNrZGdvaGVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNTE2NjUsImV4cCI6MjA5ODkyNzY2NX0.4RwwQmG4hdO8U4FB6doVvWyMtatG9RpEi3OSfRGe-js';
@@ -419,10 +431,22 @@ async function updateOrderStatus(id,status){
   closeOrderDetail(); loadOrders();
 }
 
+// Custom 3-button confirmation for order deletion; resolves to 'completed', 'restore', or null
+let _confirmDeleteResolve = null;
+function closeConfirmDelete(choice){
+  document.getElementById('confirmDeleteOverlay').classList.remove('open');
+  if(_confirmDeleteResolve){ _confirmDeleteResolve(choice); _confirmDeleteResolve=null; }
+}
+function askDeleteChoice(){
+  return new Promise(resolve=>{
+    _confirmDeleteResolve = resolve;
+    document.getElementById('confirmDeleteOverlay').classList.add('open');
+  });
+}
+
 async function deleteOrder(id){
-  // Ask if the order was actually completed
-  const wasCompleted = confirm('Was this order completed (customer received the items)?\n\nOK = Yes, keep stock as-is.\nCancel = No, restore stock.');
-  if(!confirm('Delete this order permanently? This cannot be undone.'))return;
+  const choice = await askDeleteChoice();
+  if(choice === null) return; // user cancelled
   // Grab items before deleting so we can restore stock if needed
   const {data:orderBefore} = await sb.from('orders').select('status,items').eq('id',id).single();
   const {data,error}=await sb.from('orders').delete().eq('id',id).select();
@@ -432,8 +456,9 @@ async function deleteOrder(id){
     toast(`Blocked by RLS. Signed in as: ${session?.user?.email||'(not signed in)'}`,true);
     return;
   }
-  // Restore stock only if it wasn't completed AND wasn't already cancelled (cancel already restored)
-  if(!wasCompleted && orderBefore && orderBefore.status!=='cancelled'){
+  // Restore stock only if the user picked 'restore' AND the order wasn't already cancelled
+  // (cancelled orders already had their stock restored when they were cancelled)
+  if(choice === 'restore' && orderBefore && orderBefore.status!=='cancelled'){
     await restoreStockForOrder(orderBefore.items);
     toast('Order deleted and stock restored.');
   } else {
