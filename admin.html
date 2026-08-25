@@ -400,6 +400,16 @@ function openOrderDetail(id){
     <div class="detail-row"><div class="k">Tax (16%)</div><div class="v">${(+o.tax||0).toFixed(2)} JOD</div></div>
     <div class="detail-row"><div class="k">Total</div><div class="v" style="color:var(--gold);font-weight:500">${(+o.total||0).toFixed(2)} JOD</div></div>
     <div style="margin-top:1rem"><div class="modal-sub">Items</div>${itemsHtml||'<div class="detail-item">—</div>'}</div>
+    ${o.payment_method==='cliq' && o.status==='awaiting_payment' ? `
+      <div style="margin-top:1.2rem;padding:1rem;border:1px solid var(--gold);background:rgba(184,149,106,.08);border-radius:6px">
+        <div style="font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem">CliQ Payment Check</div>
+        <div style="font-size:.9rem;margin-bottom:.8rem;color:var(--text)">Did the customer confirm the order on WhatsApp?</div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="primary" onclick="confirmCliqOrder('${o.id}')">Yes — Confirm & Reserve Stock</button>
+          <button class="danger" onclick="rejectCliqOrder('${o.id}')">No — Cancel Order</button>
+        </div>
+      </div>
+    ` : ''}
     <div class="form-actions" style="justify-content:flex-start;flex-wrap:wrap">
       <a class="wa-link" href="https://wa.me/${waPhone}" target="_blank">💬 Message Customer</a>
       <button onclick="updateOrderStatus('${o.id}','confirmed')">Mark Confirmed</button>
@@ -410,6 +420,43 @@ function openOrderDetail(id){
   document.getElementById('orderDetailOverlay').classList.add('open');
 }
 function closeOrderDetail(){document.getElementById('orderDetailOverlay').classList.remove('open')}
+
+// CliQ-specific: confirm the WhatsApp order arrived → mark confirmed AND reserve stock now
+async function confirmCliqOrder(id){
+  const {data:orderBefore} = await sb.from('orders').select('items').eq('id',id).single();
+  const {data,error}=await sb.from('orders').update({status:'confirmed'}).eq('id',id).select();
+  if(error){toast('Update failed: '+error.message,true);return}
+  if(!data||data.length===0){toast('Update blocked by RLS.',true);return}
+  if(orderBefore) await decrementStockForOrder(orderBefore.items);
+  closeOrderDetail(); loadOrders(); toast('Order confirmed and stock reserved.');
+}
+
+// CliQ-specific: customer never confirmed on WhatsApp → cancel, no stock movement (nothing was reserved)
+async function rejectCliqOrder(id){
+  const {data,error}=await sb.from('orders').update({status:'cancelled'}).eq('id',id).select();
+  if(error){toast('Update failed: '+error.message,true);return}
+  if(!data||data.length===0){toast('Update blocked by RLS.',true);return}
+  closeOrderDetail(); loadOrders(); toast('Order cancelled.');
+}
+
+// Decrement stock when an order is fulfilled (used by CliQ confirmation)
+async function decrementStockForOrder(itemsJson){
+  if(!itemsJson) return;
+  let items;
+  try { items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson; } catch(e){ return; }
+  if(!Array.isArray(items)) return;
+  for(const item of items){
+    const qty = +item.qty || 0;
+    if(!qty) continue;
+    if(item.variantId){
+      const {data:v} = await sb.from('product_variants').select('quantity').eq('id',item.variantId).single();
+      if(v) await sb.from('product_variants').update({quantity:Math.max(0,(+v.quantity||0)-qty)}).eq('id',item.variantId);
+    } else if(item.id){
+      const {data:p} = await sb.from('products').select('quantity').eq('id',item.id).single();
+      if(p && typeof p.quantity === 'number') await sb.from('products').update({quantity:Math.max(0,(+p.quantity||0)-qty)}).eq('id',item.id);
+    }
+  }
+}
 
 async function updateOrderStatus(id,status){
   // Grab the order first so we know its previous status and items
