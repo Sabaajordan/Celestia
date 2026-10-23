@@ -95,6 +95,24 @@ tr:hover{background:rgba(184,149,106,.04)}
 .upload-btn{display:inline-block;padding:.5rem 1rem;background:transparent;border:1px solid var(--gold-line);color:var(--muted);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;font-family:inherit}
 .upload-btn:hover{border-color:var(--gold);color:var(--gold)}
 .upload-input{display:none}
+.photo-gallery{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem}
+.photo-gallery:empty{display:none}
+.photo-tile{position:relative;width:96px;height:96px;border:1px solid var(--gold-line);background:var(--bg)}
+.photo-tile img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-tile.main{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.photo-tile-tag{position:absolute;left:0;bottom:0;right:0;background:rgba(0,0,0,.6);color:var(--gold);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:.2rem 0}
+.photo-tile-btn{position:absolute;top:3px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;line-height:22px;padding:0;cursor:pointer}
+.photo-tile-btn.remove{right:3px}
+.photo-tile-btn.star{left:3px}
+.photo-tile-btn:hover{background:var(--gold);color:#000}
+.variant-photos{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;padding-top:.2rem}
+.variant-photos-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-right:.2rem}
+.variant-photo{position:relative;width:52px;height:52px;border:2px solid transparent;cursor:pointer;opacity:.45;background:var(--bg);padding:0}
+.variant-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.variant-photo.on{border-color:var(--gold);opacity:1}
+.variant-photo-num{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#000;font-size:.65rem;line-height:18px;text-align:center;font-weight:600}
+.variant-photo-add{width:52px;height:52px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--gold-line);color:var(--muted);font-size:1.2rem;cursor:pointer}
+.variant-photo-add:hover{border-color:var(--gold);color:var(--gold)}
 .form-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(184,149,106,.15)}
 .detail-row{display:grid;grid-template-columns:130px 1fr;gap:1rem;padding:.6rem 0;border-bottom:1px solid rgba(184,149,106,.08);font-size:.85rem}
 .detail-row .k{color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-size:.7rem;padding-top:.15rem}
@@ -114,13 +132,14 @@ tr:hover{background:rgba(184,149,106,.04)}
 .variant-empty{padding:2rem 0;text-align:center;color:var(--dim);font-size:.85rem}
 @media(max-width:640px){
   .variant-header{display:none}
-  .variant-row{grid-template-columns:1fr 1fr;grid-template-areas:"swatch swatch" "name name" "price stock" "color color" "del del";gap:.7rem;padding:.9rem;border:1px solid var(--gold-line);border-radius:8px;margin-bottom:.7rem;background:rgba(255,255,255,.02);align-items:stretch}
+  .variant-row{grid-template-columns:1fr 1fr;grid-template-areas:"swatch swatch" "name name" "price stock" "color color" "photos photos" "del del";gap:.7rem;padding:.9rem;border:1px solid var(--gold-line);border-radius:8px;margin-bottom:.7rem;background:rgba(255,255,255,.02);align-items:stretch}
   .variant-row .variant-swatch-preview{grid-area:swatch;width:40px;height:40px;justify-self:start;margin:0}
   .variant-row .variant-field-name{grid-area:name}
   .variant-row .variant-field-price{grid-area:price}
   .variant-row .variant-field-stock{grid-area:stock}
   .variant-row .variant-field-color{grid-area:color}
   .variant-row .variant-actions{grid-area:del;justify-content:flex-end}
+  .variant-row .variant-photos{grid-area:photos}
   .variant-label{display:block}
 }
 .toast{position:fixed;bottom:2rem;right:2rem;background:var(--panel);border:1px solid var(--gold);color:var(--text);padding:1rem 1.4rem;font-size:.8rem;z-index:1000;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
@@ -210,13 +229,14 @@ tr:hover{background:rgba(184,149,106,.04)}
     <div class="modal-sub" id="productFormSub">Add a new item to the catalog</div>
     <input type="hidden" id="productId">
     <div class="field wide">
-      <label>Image</label>
-      <img id="productImagePreview" class="image-preview" src="" alt="" style="display:none">
+      <label>Photos</label>
+      <div id="productGallery" class="photo-gallery"></div>
       <label class="upload-btn">
-        <input type="file" class="upload-input" id="productImageInput" accept="image/*" onchange="handleImageUpload(event)">
-        Choose Image
+        <input type="file" class="upload-input" id="productImageInput" accept="image/*" multiple onchange="handleImageUpload(event)">
+        Add Photos
       </label>
       <span id="productImageStatus" style="margin-left:.6rem;font-size:.75rem;color:var(--dim)"></span>
+      <div class="field-hint">The first photo is the main one shown in the shop. Link photos to colours in the Variants window.</div>
     </div>
     <div class="form-grid">
       <div class="field"><label>SKU</label><input type="text" id="productSku" placeholder="e.g. P0123"></div>
@@ -268,7 +288,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let allOrders=[], allProducts=[];
 let currentOrderFilter='all', currentProductCat='all', currentTab='orders';
-let editingProductId=null, pendingImageUrl=null;
+let editingProductId=null, pendingImages=[];
 
 function toast(msg,isErr){
   const t=document.getElementById('toast');
@@ -630,21 +650,20 @@ async function deleteProduct(id){
 }
 
 function openProductForm(){
-  editingProductId=null; pendingImageUrl=null;
+  editingProductId=null; pendingImages=[];
   document.getElementById('productFormTitle').textContent='New Product';
   document.getElementById('productFormSub').textContent='Add a new item to the catalog';
   ['productId','productSku','productNameEn','productNameAr','productDescEn','productDescAr','productBrand','productPrice','productQuantity'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('productCategory').value='cosmetics';
   document.getElementById('productSortOrder').value='0';
-  document.getElementById('productImagePreview').style.display='none';
-  document.getElementById('productImagePreview').src='';
+  renderProductGallery();
   document.getElementById('productImageStatus').textContent='';
   document.getElementById('productFormOverlay').classList.add('open');
 }
 
 function editProduct(id){
   const p=allProducts.find(x=>x.id===id);if(!p)return;
-  editingProductId=id; pendingImageUrl=p.image;
+  editingProductId=id; pendingImages=productPhotos(p).slice();
   document.getElementById('productFormTitle').textContent='Edit Product';
   document.getElementById('productFormSub').textContent=p.sku||'';
   document.getElementById('productId').value=id;
@@ -658,27 +677,69 @@ function editProduct(id){
   document.getElementById('productPrice').value=p.price;
   document.getElementById('productQuantity').value=p.quantity;
   document.getElementById('productSortOrder').value=p.sort_order||0;
-  if(p.image){const img=document.getElementById('productImagePreview');img.src=p.image;img.style.display='block'}
-  else{document.getElementById('productImagePreview').style.display='none'}
+  renderProductGallery();
   document.getElementById('productImageStatus').textContent='';
   document.getElementById('productFormOverlay').classList.add('open');
 }
 
 function closeProductForm(){document.getElementById('productFormOverlay').classList.remove('open')}
 
-async function handleImageUpload(e){
-  const file=e.target.files[0];if(!file)return;
-  const statusEl=document.getElementById('productImageStatus');
-  statusEl.textContent='Uploading…'; statusEl.style.color='var(--dim)';
+// All photos of a product, main photo first. Falls back to the single
+// "image" column for products saved before variant-photos-setup.sql.
+function productPhotos(p){
+  if(p && Array.isArray(p.images) && p.images.length) return p.images;
+  return p && p.image ? [p.image] : [];
+}
+function variantPhotos(v){
+  if(v && Array.isArray(v.images) && v.images.length) return v.images;
+  return v && v.image ? [v.image] : [];
+}
+function photosColumnHint(error){
+  return /images/.test(error.message||'') ? ' — run variant-photos-setup.sql in Supabase first.' : '';
+}
+
+async function uploadProductImage(file){
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
   const fname=`product-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
   const {error}=await sb.storage.from('product-images').upload(fname,file,{cacheControl:'3600',upsert:false});
-  if(error){statusEl.textContent='Upload failed: '+error.message;statusEl.style.color='var(--red)';return}
-  const {data:{publicUrl}}=sb.storage.from('product-images').getPublicUrl(fname);
-  pendingImageUrl=publicUrl;
-  const img=document.getElementById('productImagePreview');
-  img.src=publicUrl; img.style.display='block';
-  statusEl.textContent='Uploaded ✓'; statusEl.style.color='var(--green)';
+  if(error) throw error;
+  return sb.storage.from('product-images').getPublicUrl(fname).data.publicUrl;
+}
+
+function renderProductGallery(){
+  document.getElementById('productGallery').innerHTML = pendingImages.map((src,i)=>`
+    <div class="photo-tile${i===0?' main':''}">
+      <img src="${escapeHtml(src)}" alt="">
+      ${i===0?'<div class="photo-tile-tag">Main</div>':`<button type="button" class="photo-tile-btn star" title="Make main photo" onclick="makeMainPhoto(${i})">★</button>`}
+      <button type="button" class="photo-tile-btn remove" title="Remove photo" onclick="removeProductPhoto(${i})">✕</button>
+    </div>`).join('');
+}
+
+function makeMainPhoto(i){
+  const [src]=pendingImages.splice(i,1);
+  pendingImages.unshift(src);
+  renderProductGallery();
+}
+
+function removeProductPhoto(i){
+  pendingImages.splice(i,1);
+  renderProductGallery();
+}
+
+async function handleImageUpload(e){
+  const files=[...e.target.files];if(!files.length)return;
+  const statusEl=document.getElementById('productImageStatus');
+  statusEl.style.color='var(--dim)';
+  let done=0;
+  for(const file of files){
+    statusEl.textContent=`Uploading ${done+1} of ${files.length}…`;
+    try{pendingImages.push(await uploadProductImage(file))}
+    catch(err){statusEl.textContent='Upload failed: '+err.message;statusEl.style.color='var(--red)';e.target.value='';renderProductGallery();return}
+    done++;
+    renderProductGallery();
+  }
+  e.target.value='';
+  statusEl.textContent=`Uploaded ${done} ✓ — remember to Save`; statusEl.style.color='var(--green)';
 }
 
 async function saveProduct(){
@@ -693,7 +754,8 @@ async function saveProduct(){
     price:parseFloat(document.getElementById('productPrice').value)||0,
     quantity:Math.max(0,parseInt(document.getElementById('productQuantity').value)||0),
     sort_order:parseInt(document.getElementById('productSortOrder').value)||0,
-    image:pendingImageUrl||null,
+    image:pendingImages[0]||null,
+    images:pendingImages.slice(),
     active:true
   };
   if(!payload.name_en){toast('Name (English) is required.',true);return}
@@ -702,9 +764,22 @@ async function saveProduct(){
   if(editingProductId){result=await sb.from('products').update(payload).eq('id',editingProductId)}
   else{result=await sb.from('products').insert(payload)}
   document.getElementById('productSaveBtn').disabled=false;
-  if(result.error){toast('Save failed: '+result.error.message,true);return}
+  if(result.error){toast('Save failed: '+result.error.message+photosColumnHint(result.error),true);return}
+  if(editingProductId) await unlinkRemovedPhotos(editingProductId, pendingImages);
   toast(editingProductId?'Product updated.':'Product added.');
   closeProductForm(); loadProducts();
+}
+
+// Photos removed from a product's gallery are also removed from its variants.
+async function unlinkRemovedPhotos(productId, photos){
+  const {data}=await sb.from('product_variants').select('id,image,images').eq('product_id',productId);
+  for(const v of data||[]){
+    const before=variantPhotos(v);
+    const after=before.filter(src=>photos.includes(src));
+    if(after.length!==before.length){
+      await sb.from('product_variants').update({images:after,image:after[0]||null}).eq('id',v.id);
+    }
+  }
 }
 
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -721,7 +796,7 @@ async function openVariants(productId){
   document.getElementById('variantsBox').innerHTML=`
     <button class="modal-close" onclick="closeVariants()">✕</button>
     <div class="modal-title">Variants — ${escapeHtml(p.name_en)}</div>
-    <div class="modal-sub">Each variant tracks its own stock. Leave price blank to use the product's base price (${p.price} JOD).</div>
+    <div class="modal-sub">Each variant tracks its own stock. Leave price blank to use the product's base price (${p.price} JOD). Tap photos to link them to a variant; the first one tapped is shown when a customer picks it.</div>
     <div id="variantsList"><div class="variant-empty">Loading…</div></div>
     <div class="variant-add-row"><button class="primary" onclick="addVariantRow()">+ Add Variant</button></div>
     <div class="form-actions">
@@ -774,9 +849,64 @@ function renderVariantsList(){
         <div class="variant-actions">
           <button class="icon-btn danger" onclick="deleteVariant(${v.id})">Del</button>
         </div>
+        ${renderVariantPhotoPicker(v)}
       </div>
     `).join('')}
   `;
+}
+
+function renderVariantPhotoPicker(v){
+  const p = allProducts.find(x=>x.id===currentVariantProductId);
+  const linked = variantPhotos(v);
+  const tiles = productPhotos(p).map((src,i)=>{
+    const n = linked.indexOf(src);
+    return `<button type="button" class="variant-photo${n>=0?' on':''}" title="${n>=0?'Unlink':'Link'} this photo" onclick="toggleVariantPhoto(${v.id},${i})"><img src="${escapeHtml(src)}" alt="">${n>=0?`<span class="variant-photo-num">${n+1}</span>`:''}</button>`;
+  }).join('');
+  return `<div class="variant-photos">
+    <span class="variant-photos-label">Photos</span>
+    ${tiles}
+    <label class="variant-photo-add" title="Upload a photo for this variant">+<input type="file" class="upload-input" accept="image/*" multiple onchange="uploadVariantPhotos(event,${v.id})"></label>
+  </div>`;
+}
+
+async function setVariantPhotos(id, photos){
+  const {error} = await sb.from('product_variants').update({images:photos,image:photos[0]||null}).eq('id',id);
+  if(error){toast('Update failed: '+error.message+photosColumnHint(error),true);return false}
+  const v = currentVariants.find(x=>x.id===id);
+  if(v){v.images=photos;v.image=photos[0]||null}
+  renderVariantsList();
+  loadProducts();
+  return true;
+}
+
+function toggleVariantPhoto(id, photoIdx){
+  const p = allProducts.find(x=>x.id===currentVariantProductId);
+  const v = currentVariants.find(x=>x.id===id);
+  const src = productPhotos(p)[photoIdx];
+  if(!v || !src) return;
+  const linked = variantPhotos(v).slice();
+  const at = linked.indexOf(src);
+  if(at>=0) linked.splice(at,1); else linked.push(src);
+  setVariantPhotos(id, linked);
+}
+
+// Upload new photos from the Variants window: they join the product's
+// gallery and are linked to this variant.
+async function uploadVariantPhotos(e, id){
+  const files=[...e.target.files];e.target.value='';if(!files.length)return;
+  const productId=currentVariantProductId;
+  const p = allProducts.find(x=>x.id===productId);
+  const v = currentVariants.find(x=>x.id===id);
+  if(!p || !v) return;
+  toast('Uploading…');
+  const added=[];
+  try{for(const file of files) added.push(await uploadProductImage(file))}
+  catch(err){toast('Upload failed: '+err.message,true);if(!added.length)return}
+  const gallery=[...productPhotos(p), ...added];
+  const {error} = await sb.from('products').update({images:gallery,image:gallery[0]}).eq('id',productId);
+  if(error){toast('Save failed: '+error.message+photosColumnHint(error),true);return}
+  p.images=gallery; p.image=gallery[0];
+  if(await setVariantPhotos(id, [...variantPhotos(v), ...added])) toast('Photo added.');
 }
 
 async function updateVariant(id, field, value){

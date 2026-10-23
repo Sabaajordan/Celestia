@@ -907,8 +907,11 @@ async function loadProductsFromDB(){
         (variantsByProduct[v.product_id] = variantsByProduct[v.product_id] || []).push(v);
       });
     }
+    // Photo lists; fall back to the single "image" column for older rows
+    const photoList = r => (Array.isArray(r.images) && r.images.length) ? r.images : (r.image ? [r.image] : []);
     products = (prodRes.data||[]).map(p=>{
       const variants = variantsByProduct[p.id] || [];
+      const imgs = photoList(p);
       const totalVariantQty = variants.reduce((s,v)=>s+(+v.quantity||0),0);
       const hasVariants = variants.length > 0;
       const effectiveQty = hasVariants ? totalVariantQty : (+p.quantity || 0);
@@ -923,13 +926,15 @@ async function loadProductsFromDB(){
         price: +p.price || 0,
         quantity: effectiveQty,
         soldOut: effectiveQty === 0,
-        img: p.image || '',
+        img: imgs[0] || '',
+        imgs,
         colors: variants.map(v=>({
           id: v.id,
           name: v.name_en || '',
           nameAr: v.name_ar || '',
           hex: v.color_hex || '#c4a882',
-          img: v.image || '',
+          img: photoList(v)[0] || '',
+          imgs: photoList(v),
           price: (v.price_override === null || v.price_override === undefined) ? (+p.price||0) : (+v.price_override),
           quantity: +v.quantity || 0,
           soldOut: (+v.quantity || 0) === 0
@@ -1062,25 +1067,25 @@ function renderProdModal(){
   if(!p)return;
   const brandLabel = p.brand==='maxfactor'?'Max Factor':p.brand.charAt(0).toUpperCase()+p.brand.slice(1);
   // Build gallery: main image is either selected color's img or product's default img
+  // Gallery: the selected colour's photos, then the product's general photos
+  // (ones not linked to any colour). A colour with no photos shows them all.
   const selColor = p.colors[modalState.selectedColorIdx];
-  const mainImg = (selColor && selColor.img) ? selColor.img : p.img;
-  // Build thumbnail images list: only include colors that have img, otherwise just the default photo
-  const thumbImgs = [];
-  thumbImgs.push({src:p.img, label:tProd(p,'name'), colorIdx:-1});
-  (p.extraImgs||[]).forEach(src=>{
-    thumbImgs.push({src, label:tProd(p,'name'), colorIdx:-1});
-  });
-  p.colors.forEach((c,i)=>{
-    if(c.img && c.img !== p.img){
-      thumbImgs.push({src:c.img, label:c.name, colorIdx:i});
-    }
-  });
-  const showThumbs = thumbImgs.length > 1;
+  let gallery;
+  if(selColor && selColor.imgs.length){
+    const linked = new Set(p.colors.flatMap(c=>c.imgs));
+    gallery = [...selColor.imgs, ...p.imgs.filter(src=>!linked.has(src))];
+  } else {
+    gallery = p.imgs.length ? p.imgs.slice() : [p.img];
+  }
+  gallery = [...new Set(gallery)];
+  modalState.gallery = gallery;
+  const mainImg = gallery[0];
+  const label = selColor ? selColor.name : tProd(p,'name');
+  const showThumbs = gallery.length > 1;
   const thumbsHtml = showThumbs
-    ? `<div class="prod-modal-thumbs">${thumbImgs.map((t,i)=>{
-        const isActive = i===0; // Main image starts active
-        return `<div class="prod-modal-thumb${isActive?' active':''}" onclick="selectModalThumb(event,'${t.src}',${t.colorIdx})"><img src="${t.src}" alt="${t.label}"></div>`;
-      }).join('')}</div>`
+    ? `<div class="prod-modal-thumbs">${gallery.map((src,i)=>
+        `<div class="prod-modal-thumb${i===0?' active':''}" onclick="selectModalThumb(event,${i})"><img src="${src}" alt="${label}"></div>`
+      ).join('')}</div>`
     : '';
   const galleryClass = showThumbs ? 'prod-modal-gallery' : 'prod-modal-gallery no-thumbs';
   const galleryStyle = showThumbs ? '' : 'style="grid-template-columns:1fr"';
@@ -1114,15 +1119,10 @@ function selectModalColor(idx){
   renderProdModal();
 }
 
-function selectModalThumb(evt, src, colorIdx){
-  if(colorIdx === -1){
-    document.getElementById('prodModalMainImg').src = src;
-    document.querySelectorAll('.prod-modal-thumb').forEach(t=>t.classList.remove('active'));
-    evt.currentTarget.classList.add('active');
-  } else {
-    modalState.selectedColorIdx = colorIdx;
-    renderProdModal();
-  }
+function selectModalThumb(evt, idx){
+  document.getElementById('prodModalMainImg').src = modalState.gallery[idx];
+  document.querySelectorAll('.prod-modal-thumb').forEach(t=>t.classList.remove('active'));
+  evt.currentTarget.classList.add('active');
 }
 
 function addFromModal(){
@@ -1155,9 +1155,11 @@ function selectColor(e,pid){
   const card=e.target.closest('.prod-card');
   card.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
   swatch.classList.add('selected');
-  const colorImg=swatch.dataset.img;
-  if(colorImg){
-    const img=card.querySelector('.prod-img img');
+  // A colour without its own photo goes back to the main photo
+  const p=products.find(x=>x.id===pid);
+  const colorImg=swatch.dataset.img || (p && p.img);
+  const img=card.querySelector('.prod-img img');
+  if(colorImg && img.getAttribute('src')!==colorImg){
     img.style.opacity='0';
     setTimeout(()=>{img.src=colorImg;img.style.opacity='1'},200);
   }
